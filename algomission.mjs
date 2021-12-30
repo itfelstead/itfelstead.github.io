@@ -1118,7 +1118,7 @@ class AlgoMission {
             })();
         }
 
-        let spotlight = new THREE.SpotLight( 0xffffff, 1, 200, Math.PI/2  );
+        let spotlight = new THREE.SpotLight( 0xffffff, 1, 20, Math.PI/2  );
         spotlight.position.set(0,0,distanceFromCamera+1);
         spotlight.target = this.m_NextArrow;
         spotlight.name = "mapSelectSpotlight";
@@ -1285,7 +1285,7 @@ class AlgoMission {
                 var instructionClicked =
                     this.detectInstructionPress(event.clientX, event.clientY, this.m_Raycaster);
     
-                if (instructionClicked) {
+                if (instructionClicked >= 0) {
                     this.m_AmbientButtonClickSound.play();
     
                     // We handle CLEAR and GO here, others are added to the instruction list
