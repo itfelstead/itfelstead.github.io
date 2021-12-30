@@ -1,0 +1,43 @@
+<!--
+	algo-mission.html
+
+	algo-mission project entry point.
+
+	Author: Ian Felstead
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>Algo-Mission</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			margin: 0px;
+			overflow: hidden;
+		}
+
+
+		/* Main Window */
+		#AlgoMission {
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="AlgoMission"></div>
+	<script type="module">
+		import { AlgoMission } from './algomission.mjs';
+		var g_AlgoMission = new AlgoMission();
+		g_AlgoMission.runGame();
+	</script>
+</body>
+
+</html>

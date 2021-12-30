@@ -1,0 +1,11 @@
+Model Information:
+* title:	Magical Mary - Original Mary Design
+* source:	https://sketchfab.com/3d-models/magical-mary-original-mary-design-a8b47afcf07646b883f4def73834b0c5
+* author:	Xane Myers (https://sketchfab.com/Xane_MM)
+
+Model License:
+* license type:	CC-BY-SA-4.0 (http://creativecommons.org/licenses/by-sa/4.0/)
+* requirements:	Author must be credited. Modified versions must have the same license. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Magical Mary - Original Mary Design" (https://sketchfab.com/3d-models/magical-mary-original-mary-design-a8b47afcf07646b883f4def73834b0c5) by Xane Myers (https://sketchfab.com/Xane_MM) licensed under CC-BY-SA-4.0 (http://creativecommons.org/licenses/by-sa/4.0/)

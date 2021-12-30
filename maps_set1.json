@@ -1,0 +1,170 @@
+{
+    "_comment_1_tileConfig": "*** Road Tile Set #1 ***",
+    "_comment_2_tileConfig": "Note: Images get flipped vertically, and horizontally hence the tags differing to the image file names",
+    "tileConfig": {
+        "tile_cross":           { "textureFile": "road/256_cross.png" },
+		"tile_top_deadend":     { "textureFile": "road/256_tear_bottom.png" },
+        "tile_bottom_deadend":  { "textureFile": "road/256_tear_top.png" },
+        "tile_right_deadend":   { "textureFile": "road/256_left_tear.png" },
+		"tile_left_deadend":    { "textureFile": "road/256_right_tear.png" },
+		"tile_tjunct_horiz_down": { "textureFile": "road/256_tjunct_horizontal_up.png" },
+        "tile_tjunct_horiz_up": { "textureFile": "road/256_tjunct_horizontal_down.png" },
+        "tile_tjunct_vert_left": { "textureFile": "road/256_tjunct_vertical_left.png" },
+        "tile_tjunct_vert_right": { "textureFile": "road/256_tjunct_vertical_right.png" },
+        "tile_vert":            { "textureFile": "road/256_vertical.png" },
+		"tile_horiz":           { "textureFile": "road/256_horizontal.png" },
+        "tile_bend_left_up":    { "textureFile": "road/256_bend_right_down.png" },
+        "tile_bend_left_down":  { "textureFile": "road/256_bend_right_up.png" },
+        "tile_bend_right_up":   { "textureFile": "road/256_bend_left_down.png" },
+        "tile_bend_right_down": { "textureFile": "road/256_bend_left_up.png" }
+  	},
+    "_comment_1_mapDefinition": "*** 0, 0 means start: all other tiles are relative to start ***",
+    "_comment_2_mapDefinition": "1x, 1z               -1x, 1z",
+    "_comment_3_mapDefinition": "          0x, 0z            ",
+    "_comment_4_mapDefinition": "1x, -1z              -1x,-1z",
+    "mapDefinition": [
+        {
+            "mapid": 0,
+            "name": "Straight Forward",
+            "instructions": "Your first few steps...",
+            "hint": "forward 3 times, then wait (so 4 instructions in total)",
+            "difficulty": 1,
+            "successCriteria": 1,
+            "maximumScore": 1,
+            "tileLayout": [
+                { "x": 0, "z":-1, "id": "tile_bottom_deadend" },
+                { "x": 0, "z": 0, "id": "tile_vert", "role": "START" },
+                { "x": 0, "z": 1, "id": "tile_vert", "role": "SPECIAL_BIRD" },
+                { "x": 0, "z": 2, "id": "tile_vert", "role": "SPECIAL_BIRD" },
+                { "x": 0, "z": 3, "id": "tile_vert", "role": "BUSSTOP"  }
+            ]
+        },
+        {
+            "mapid": 1,
+            "name": "The Left Turn",
+            "instructions": "Now lets try the steering wheel!",
+            "hint": "if you pick up everyone, you get more points!",
+            "difficulty": 1,
+            "successCriteria": 1,
+            "maximumScore": 2,
+            "tileLayout": [
+                { "x": 0, "z":-1, "id": "tile_bottom_deadend" },
+                { "x": 0, "z": 0, "id": "tile_vert", "role": "START" },
+                { "x": 0, "z": 1, "id": "tile_vert", "role": "BUSSTOP" },
+                { "x": 0, "z": 2, "id": "tile_bend_right_down" },
+                { "x": 1, "z": 2, "id": "tile_horiz", "role": "BUSSTOP" }
+            ]
+        },
+        {
+            "mapid": 2,
+            "name": "Left, Right!",
+            "instructions": "OK, time to get dizzy...",
+            "difficulty": 1,
+            "successCriteria": 1,
+            "maximumScore": 1,
+            "tileLayout": [
+                { "x": 0, "z":-1, "id": "tile_bottom_deadend" },
+                { "x": 0, "z": 0, "id": "tile_bend_right_down", "role": "START" },
+                { "x":1, "z": 0, "id": "tile_bend_left_up" },
+                { "x":1, "z": 1, "id": "tile_bend_right_down" },
+                { "x":2, "z": 1, "id": "tile_bend_left_up" },
+                { "x":2, "z": 2, "id": "tile_vert", "role": "BUSSTOP" },
+                { "x":2, "z": 3, "id": "tile_top_deadend" }
+            ]
+        },
+        {
+            "mapid": 3,
+            "name": "Loopy!",
+            "instructions": "OK, not dizzy enough? try this!",
+            "difficulty": 3,
+            "successCriteria": 1,
+            "maximumScore": 1,
+            "tileLayout": [
+                { "x": 0, "z":-1, "id": "tile_bottom_deadend" },
+                { "x": 1, "z":0, "id": "tile_left_deadend" },
+                { "x": -1, "z":0, "id": "tile_right_deadend" },
+                { "x": 0, "z": 0, "id": "tile_cross", "role": "START" },
+                { "x":0, "z": 1, "id": "tile_vert" },
+                { "x":0, "z": 2, "id": "tile_cross" },
+                { "x":-1, "z": 2, "id": "tile_bend_right_up", "role": "SPECIAL_BIRD" },
+                { "x":-1, "z": 3, "id": "tile_bend_right_down", "role": "SPECIAL_BIRD" },
+                { "x":0, "z": 3, "id": "tile_tjunct_horiz_down" },
+                { "x":1, "z": 3, "id": "tile_bend_left_down" },
+                { "x":1, "z": 2, "id": "tile_tjunct_horiz_up" },
+                { "x":2, "z": 2, "id": "tile_horiz", "role": "BUSSTOP" },
+                { "x":3, "z": 2, "id": "tile_left_deadend" }
+            ]
+        }
+        ,
+        {
+            "mapid": 4,
+            "name": "TBD",
+            "instructions": "Scare away the birds!",
+            "difficulty": 3,
+            "successCriteria": 1,
+            "maximumScore": 1,
+            "tileLayout": [
+                { "x": 0, "z":-1, "id": "tile_bottom_deadend" },
+                { "x": 1, "z":0, "id": "tile_left_deadend" },
+                { "x": -1, "z":0, "id": "tile_right_deadend" },
+                { "x": 0, "z": 0, "id": "tile_cross", "role": "START" },
+                { "x":0, "z": 1, "id": "tile_vert" },
+                { "x":0, "z": 2, "id": "tile_cross" },
+                { "x":-1, "z": 2, "id": "tile_bend_right_up", "role": "SPECIAL_BIRD" },
+                { "x":-1, "z": 3, "id": "tile_bend_right_down", "role": "SPECIAL_BIRD" },
+                { "x":0, "z": 3, "id": "tile_tjunct_horiz_down" },
+                { "x":1, "z": 3, "id": "tile_bend_left_down" },
+                { "x":1, "z": 2, "id": "tile_tjunct_horiz_up" },
+                { "x":2, "z": 2, "id": "tile_horiz", "role": "BUSSTOP" },
+                { "x":3, "z": 2, "id": "tile_left_deadend" }
+            ]
+        }
+        ,
+        {
+            "mapid": 5,
+            "name": "TBD",
+            "instructions": "More people?!",
+            "difficulty": 3,
+            "successCriteria": 1,
+            "maximumScore": 1,
+            "tileLayout": [
+                { "x": 0, "z":-1, "id": "tile_bottom_deadend" },
+                { "x": 1, "z":0, "id": "tile_left_deadend" },
+                { "x": -1, "z":0, "id": "tile_right_deadend" },
+                { "x": 0, "z": 0, "id": "tile_cross", "role": "START" },
+                { "x":0, "z": 1, "id": "tile_vert" },
+                { "x":0, "z": 2, "id": "tile_cross" },
+                { "x":-1, "z": 2, "id": "tile_bend_right_up", "role": "SPECIAL_BIRD" },
+                { "x":-1, "z": 3, "id": "tile_bend_right_down", "role": "SPECIAL_BIRD" },
+                { "x":0, "z": 3, "id": "tile_tjunct_horiz_down" },
+                { "x":1, "z": 3, "id": "tile_bend_left_down" },
+                { "x":1, "z": 2, "id": "tile_tjunct_horiz_up" },
+                { "x":2, "z": 2, "id": "tile_horiz", "role": "BUSSTOP" },
+                { "x":3, "z": 2, "id": "tile_left_deadend" }
+            ]
+        },
+        {
+            "mapid": 6,
+            "name": "TBD",
+            "instructions": "Getting busy...",
+            "difficulty": 3,
+            "successCriteria": 1,
+            "maximumScore": 1,
+            "tileLayout": [
+                { "x": 0, "z":-1, "id": "tile_bottom_deadend" },
+                { "x": 1, "z":0, "id": "tile_left_deadend" },
+                { "x": -1, "z":0, "id": "tile_right_deadend" },
+                { "x": 0, "z": 0, "id": "tile_cross", "role": "START" },
+                { "x":0, "z": 1, "id": "tile_vert" },
+                { "x":0, "z": 2, "id": "tile_cross" },
+                { "x":-1, "z": 2, "id": "tile_bend_right_up", "role": "SPECIAL_BIRD" },
+                { "x":-1, "z": 3, "id": "tile_bend_right_down", "role": "SPECIAL_BIRD" },
+                { "x":0, "z": 3, "id": "tile_tjunct_horiz_down" },
+                { "x":1, "z": 3, "id": "tile_bend_left_down" },
+                { "x":1, "z": 2, "id": "tile_tjunct_horiz_up" },
+                { "x":2, "z": 2, "id": "tile_horiz", "role": "BUSSTOP" },
+                { "x":3, "z": 2, "id": "tile_left_deadend" }
+            ]
+        }
+    ]
+}
