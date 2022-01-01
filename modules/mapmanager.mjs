@@ -613,7 +613,6 @@ class MapManager
         flairMesh.traverse(
             function(obj){
                 if( obj.type === 'SkinnedMesh' ) {
-                    console.log("got mesh " + obj.material.transparent);
                     obj.material.transparent = false;
                     obj.material.depthWrite = true;
                 }

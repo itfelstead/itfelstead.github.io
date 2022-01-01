@@ -25,17 +25,24 @@ class ScoreManager {
         mapManager.registerObserver(this);  // for score updates
     }
 
-    createScore( camera ) {
+    createScore() {
         if( this.m_ScoreMesh == null ) {
             const wideDummyText = "---------------";
             this.createScoreMesh( wideDummyText, 1.25, 0xffffff, 0x000000);
     
             this.m_ScoreMesh.position.set( 7, 9, -10 );
             this.m_ScoreMesh.name = "scoreMsg";
-            camera.add(this.m_ScoreMesh);
-
+            
             this.resetScore();
         }
+    }
+
+    showScore( camera ) {
+        camera.add(this.m_ScoreMesh);
+    }
+
+    hideScore( camera ) {
+        camera.remove(this.m_ScoreMesh);
     }
 
     updateTriggered(notificationType, notificationValue) {

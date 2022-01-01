@@ -119,9 +119,7 @@ class Bot {
     boundingBox.getSize( boxSize );
 
     this.modelLength = boxSize.z;
-    console.log("modellenght: " + this.modelLength );
     this.stepSize = this.modelLength + (tileBorder * 2);
-    console.log("stepsize: " + this.stepSize );
   }
 
   /**

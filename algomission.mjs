@@ -15,6 +15,7 @@ import { MapManager } from './modules/mapmanager.mjs';
 import { InstructionManager } from './modules/instructionmanager.mjs';
 import { ControlPanel } from './modules/controlpanel.mjs';
 import { ScoreManager } from './modules/scoremanager.mjs';
+import { LoadingManager } from './modules/loadingmanager.mjs';
 
 // Global Namespace
 var ALGO = ALGO || {};
@@ -40,9 +41,9 @@ class AlgoMission {
 
     // Observer notification types (central)
 	static TNotificationType = {
-        TILE_CHANGE:  0, 		// other param is tile role
-		SCORE_CHANGE: 1, 		// other param is score delta 			
-		STATE_CHANGE: 2 		// other param is win, die
+        TILE_CHANGE:  0, 		// other param will be tile role
+		SCORE_CHANGE: 1, 		// other param will be  score delta 			
+		STATE_CHANGE: 2 		// other param will be  win, die
 	};
 
     constructor() {
@@ -62,11 +63,6 @@ class AlgoMission {
 
         // Bot
         this.m_Bot = null;
-        this.m_BotLoaded = false;
- 
-        this.m_MapLoaded = false;
-
-        this.m_SkyLoaded = false;
 
         this.m_InstructionMgr = null;
 
@@ -96,12 +92,9 @@ class AlgoMission {
         this.m_AudioListener = null;
         this.m_AmbientButtonClickSound = null;
         this.m_WinnerSound = null;
-        this.m_AudioLoaded = null;
-        this.m_WinnerAudioLoaded = null;
-
+ 
         // Winner
         this.m_Trophy = null;
-        this.m_TrophyLoaded = false;
 
         this.m_MapSelectionObjects = [];
 
@@ -115,6 +108,11 @@ class AlgoMission {
         this.m_Observers = [];
 
         this.m_ScoreManager = null;
+
+        this.m_LoadingManager = null;
+
+        // These are the jobs that we need to wait for (i.e. things the loading screen covers)
+        this.m_StartupLoadJobNames = [ "bot", "sky", "map",  "winner audio", "audio" ];
     }
 
     // called by things that want to observe us
@@ -166,6 +164,10 @@ class AlgoMission {
 
     getBot() {
         return this.m_Bot;
+    }
+
+    getLoadingManager() {
+        return this.m_LoadingManager;
     }
 
     getMapManager() {
@@ -268,7 +270,7 @@ class AlgoMission {
         switch (this.m_State) {
             case AlgoMission.TAppState.INITIAL:
                 if (this.m_Bot.mesh != null && typeof (this.m_Bot.mesh) != "undefined" &&
-                    this.m_MapLoaded == true ) {
+                    this.getLoadingManager().isLoaded( "map" ) == true ) {
                     newState = AlgoMission.TAppState.SELECTMAP;
                 }
                 break;
@@ -351,7 +353,7 @@ class AlgoMission {
             case AlgoMission.TAppState.INITIAL:
                 break;
             case AlgoMission.TAppState.READY:
-                this.m_ControlPanel.addButtons( this.m_Camera );
+                this.showPlayArea();
                 break;
             case AlgoMission.TAppState.RUNNING:
                 break;
@@ -364,6 +366,7 @@ class AlgoMission {
             case AlgoMission.TAppState.RETRY:
                 break;
             case AlgoMission.TAppState.SELECTMAP:
+                this.hidePlayArea();
                 this.m_MapSelectIndex = this.m_SelectedMap;     // start selection at current map
                 this.displayMapScreen();
                 break;
@@ -375,7 +378,6 @@ class AlgoMission {
             case AlgoMission.TAppState.INITIAL:
                 break;
             case AlgoMission.TAppState.READY:
-                this.m_ControlPanel.removeButtons( this.m_Camera );
                 break;
             case AlgoMission.TAppState.RUNNING:
                 break;
@@ -398,11 +400,14 @@ class AlgoMission {
     //
 
     initialise() {
-        this.displayLoadingScreen();
 
         this.setupBasicScene();
 
         this.addCamera();
+
+        this.addLoadingManager();
+
+        this.getLoadingManager().displayLoadingScreen();
 
         this.addAudio(this.m_Camera);
 
@@ -420,7 +425,6 @@ class AlgoMission {
 
         this.addScoreManager();
 
-        this.m_BotLoaded = false;
         this.addBot(this.m_InstructionMgr, this.m_MapManager, this.botCreatedCb.bind(this));
 
         // We use the calculated bot length to size the tiles
@@ -428,12 +432,9 @@ class AlgoMission {
         // has been calculated
         var self = this;
         var myInterval = setInterval(function () {
-            if (self.m_BotLoaded == true && self.m_MapLoaded == true) {
+            if (self.getLoadingManager().isLoaded("bot") == true && self.getLoadingManager().isLoaded("map") == true) {
                 // adjust map and bot step measurements according to Bot length
                 self.m_MapManager.resize(self.m_Bot.getStepSize(), 0.1);
-
-                //m_MapManager.loadMap(0, self.m_Scene);
-
                 clearInterval(myInterval);
             }
         }, 100);
@@ -444,22 +445,30 @@ class AlgoMission {
 
         this.addEventListeners();
 
-        this.m_ScoreManager.createScore( this.m_Camera );
-
         var waitForLoad = setInterval(function () {
-            if (self.m_BotLoaded == true &&
-                self.m_SkyLoaded == true &&
-                self.m_MapLoaded == true &&
-                self.m_WinnerAudioLoaded == true &&
-                self.m_AudioLoaded == true) {
+            if ( self.getLoadingManager().loadComplete( self.m_StartupLoadJobNames ) == true ) {
+
                 clearInterval(waitForLoad);
+
+                self.getLoadingManager().removeLoadingScreen();
 
                 self.toggleGridHelper();
 
-                self.removeLoadingScreen();
+                self.m_ScoreManager.createScore();
             }
         }, 100);
+    }
 
+    hidePlayArea() {
+        this.m_ControlPanel.removeButtons( this.m_Camera );
+        this.m_Scene.remove(this.m_Bot.mesh);
+        this.m_ScoreManager.hideScore( this.m_Camera );
+    }
+
+    showPlayArea() {
+        this.m_ScoreManager.showScore( this.m_Camera );
+        this.m_Scene.add(this.m_Bot.mesh);
+        this.m_ControlPanel.addButtons( this.m_Camera );
     }
 
     setupGameLoop() {
@@ -511,8 +520,6 @@ class AlgoMission {
     }
 
     addSky() {
-        this.m_SkyLoaded = false;
-
         var skyGeo = new THREE.SphereGeometry(500, 60, 40);
         skyGeo.scale(- 1, 1, 1);
 
@@ -524,7 +531,8 @@ class AlgoMission {
                 var material = new THREE.MeshBasicMaterial({ map: texture });
                 var mesh = new THREE.Mesh(skyGeo, material);
                 self.m_Scene.add(mesh);
-                self.m_SkyLoaded = true;
+
+                self.getLoadingManager().markJobComplete("sky");
             },
             // on download progress
             function (xhr) {
@@ -538,7 +546,6 @@ class AlgoMission {
     }
 
     addAudio(camera) {
-        this.m_AudioLoaded = false;
 
         this.m_AudioListener = new THREE.AudioListener();
         camera.add(this.m_AudioListener);
@@ -552,18 +559,17 @@ class AlgoMission {
             function (audioBuffer) {
                 //on load
                 self.m_AmbientButtonClickSound.setBuffer(audioBuffer);
-                self.m_AudioLoaded = true;
+                self.getLoadingManager().markJobComplete("audio");
             }
         );
 
-        this.m_WinnerAudioLoaded = false;
         this.m_WinnerSound = new THREE.Audio(this.m_AudioListener);
         this.m_Scene.add(this.m_WinnerSound);
         loader.load('audio/462362__breviceps__small-applause.wav',
             function (winnerAudioBuffer) {
                 //on load
                 self.m_WinnerSound.setBuffer(winnerAudioBuffer);
-                self.m_WinnerAudioLoaded = true;
+                self.getLoadingManager().markJobComplete("winner audio");
             }
         );
 
@@ -579,17 +585,20 @@ class AlgoMission {
     }
 
     botCreatedCb() {
-        this.m_Scene.add(this.m_Bot.mesh);
-        this.m_BotLoaded = true;
+        this.getLoadingManager().markJobComplete( "bot" );
+    }
+
+
+    addLoadingManager() {
+        this.m_LoadingManager = new LoadingManager( this, this.m_StartupLoadJobNames );
     }
 
     addMapManager(textureLoader) {
-        this.m_MapLoaded = false;
         this.m_MapManager = new MapManager( this );
         var self = this;
         this.m_MapManager.load(textureLoader, this.m_GLTFLoader, 
                 function () { 
-                    self.m_MapLoaded = true;
+                    self.getLoadingManager().markJobComplete("map");
                 });
     }
 
@@ -619,86 +628,13 @@ class AlgoMission {
         setTimeout(this.handleResize.bind(this), 1);
     }
 
-    displayLoadingScreen() {
-        var loadDiv = document.createElement('div');
-
-        loadDiv.id = "loadingScreen";
-        loadDiv.style.cssText =
-            "width: 100%;" +
-            "height: 100%;" +
-            "left: 00px;" +
-            "top: 00px;" +
-            "background-color: DimGray;" +
-            "color: White;" +
-            // we want an opaque background, but not
-            // transparent text, so use rgba rather than opacity.
-            "background: rgba(105, 105, 105, 1.0);" +
-            "overflow: auto;" +
-            "position: absolute;" +
-            "font: 24px arial,serif;";
-        loadDiv.innerHTML = "Loading...";
-        document.body.appendChild(loadDiv);
-
-        var progressDots = 0;
-        var progressIntervalMs = 500; 	// 0.5 seconds
-
-        var progressBarInterval = setInterval(function () {
-            var isFinished = true;
-
-            // If the loadingScreen has gone or the html is "" then we
-            // are finished and fading out
-            var loadElem = document.getElementById("loadingScreen");
-            if (loadElem) {
-                if (loadElem.innerHTML != "") {
-                    isFinished = false;
-
-                    loadElem.innerHTML = loadElem.innerHTML + ".";
-                    progressDots++;
-
-                    if (progressDots >= 80) {
-                        progressDots = 0;
-                        loadElem.innerHTML = "Loading...";
-                    }
-                }
-            }
-
-            if (isFinished == true) {
-                clearInterval(progressBarInterval);
-            }
-        }, progressIntervalMs);
-    }
-
-    removeLoadingScreen() {
-        var fadeStep = 0.05;
-        var fadePauseMs = 100;
-        var fade = 1.0;
-
-        // setting html to '' also tells the progress bar to finish
-        document.getElementById("loadingScreen").innerHTML = "";
-
-        (function fadeDivs() {
-            document.getElementById("loadingScreen").style.opacity = fade;
-
-            //	m_ControlPanel.setWindowOpacity( 1.0 - fade );
-            //  this.m_InstructionMgr.setWindowOpacity( 1.0 - fade );
-
-            fade -= fadeStep;
-            if (fade > 0) {
-                setTimeout(fadeDivs, fadePauseMs);
-            }
-            else {
-                document.getElementById("loadingScreen").remove();
-            }
-        })();
-    }
-
     displayWinnerScreen() {
         this.loadWinnerModels( this.m_GLTFLoader );
         this.waitForWinnerLoad( this.runWinnerScreen.bind(this), this );
     }
 
     loadWinnerModels( glTFLoader ) {
-        if( this.m_TrophyLoaded == false ) {
+        if( this.getLoadingManager().isLoaded("trophy") == false ) {
             this.loadModel( "./models/Trophy_SyntyStudios/scene.gltf", glTFLoader, this.trophyCreatedCb.bind(this) );
         }
     }
@@ -707,17 +643,16 @@ class AlgoMission {
         var threeGroup = obj.scene;
         var object3d  = threeGroup.getObjectByName( "OSG_Scene" );
         this.m_Trophy = object3d;
-        this.m_TrophyLoaded = true;
+        this.getLoadingManager().markJobComplete("trophy");
     }
 
     waitForWinnerLoad(isCreatedCallback, context) {
         var waitForAll = setInterval(function () {
-          if (context.m_TrophyLoaded == true ) {
+          if (context.getLoadingManager().isLoaded("trophy") == true ) {
             clearInterval(waitForAll);
             isCreatedCallback();
           }
         }, 100);
-        console.log("waitForWinnerLoad ending");
     }
 
     loadModel(model, glTFLoader, isCreatedCallback) {
@@ -953,7 +888,6 @@ class AlgoMission {
         if( this.m_ArrowLoaded == false ) {
             this.loadModel( "./models/Arrow_JakobHenerey/scene.gltf", glTFLoader, this.arrowCreatedCb.bind(this) );
         }
-        console.log("Arrow_JakobHenerey ending");
     }
 
     arrowCreatedCb( obj ) {
@@ -1001,7 +935,6 @@ class AlgoMission {
             isCreatedCallback();
           }
         }, 100);
-        console.log("waitForArrowLoad ending");
     }
 
     runMapSelectScreen() {
@@ -1012,8 +945,18 @@ class AlgoMission {
         let distanceFromCamera = 10;
         let selectMapScreenSize = this.getBestSelectMapScreenWidth( distanceFromCamera );
 
-        let numMapsPerPage = 3;
-        if( this.m_MapManager.jsonMaps.length < numMapsPerPage ) {
+        if( selectMapScreenSize < 17 ) {
+            this.m_MapBatchSize = 1;
+        }
+        else if( selectMapScreenSize < 20 ) {
+            this.m_MapBatchSize = 2;
+        }
+        else {
+            this.m_MapBatchSize = 3;
+        }
+
+        let numMapsPerPage = this.m_MapBatchSize;
+        if( this.m_MapManager.jsonMaps.length < this.m_MapBatchSize ) {
             numMapsPerPage = this.m_MapManager.jsonMaps.length;
         }
 
@@ -1270,6 +1213,7 @@ class AlgoMission {
     onDocumentMouseDown(event) {
 
         event.preventDefault();
+        event.stopImmediatePropagation();
 
         this.handleClickByState( event );
     }
@@ -1335,20 +1279,19 @@ class AlgoMission {
             case AlgoMission.TAppState.SELECTMAP:
                 let mapSelected = this.detectMapSelection(event.clientX, event.clientY, this.m_Raycaster );
                 if( mapSelected == "mapSelectPrevArrow" ) {
-                    const numInBatch = 3;
-                    let batch = Math.trunc(this.m_MapSelectIndex / numInBatch);
+                    let batch = Math.trunc(this.m_MapSelectIndex / this.m_MapBatchSize);
                     batch--;
-                    this.m_MapSelectIndex = Math.max(0, batch * numInBatch);
+                    this.m_MapSelectIndex = Math.max(0, batch * this.m_MapBatchSize);
                     this.displayMapScreen();
                 }
                 else if( mapSelected == "mapSelectNextArrow" ) {
-                    const numInBatch = 3;
-                    let batch = Math.trunc(this.m_MapSelectIndex / numInBatch);
+                  
+                    let batch = Math.trunc(this.m_MapSelectIndex / this.m_MapBatchSize);
                     batch++;
-                    if( batch * numInBatch >= this.m_MapManager.jsonMaps.length ) {
+                    if( batch * this.m_MapBatchSize >= this.m_MapManager.jsonMaps.length ) {
                         batch--;
                     }
-                    this.m_MapSelectIndex = batch * numInBatch;
+                    this.m_MapSelectIndex = batch * this.m_MapBatchSize;
                     this.displayMapScreen();
                 }
                 if( mapSelected > -1 ) {
