@@ -1114,6 +1114,7 @@ class AlgoMission {
 
         document.addEventListener('mousedown', this.onDocumentMouseDown.bind(this), false);
         document.addEventListener('touchstart', this.onDocumentTouchStart.bind(this), false);
+        document.addEventListener('touchend', this.onDocumentTouchEnd.bind(this), false);
     }
 
     //
@@ -1163,12 +1164,23 @@ class AlgoMission {
         this.m_Renderer.setSize(width, height);
     }
 
+    // For touch screens we have to mess about a bit to avoid accidental double clicks
     onDocumentTouchStart(event) {
         event.preventDefault();
-        event.clientX = event.touches[0].clientX;
-        event.clientY = event.touches[0].clientY;
-        this.handleClickByState(event);
+        this.m_TouchInProgress = true;
     }
+
+    onDocumentTouchEnd(event) {
+        event.preventDefault();
+        if( this.m_TouchInProgress ) {
+            event.clientX = event.touches[0].clientX;
+            event.clientY = event.touches[0].clientY;
+            this.handleClickByState(event);
+        }
+
+        this.m_TouchInProgress = false;
+    }
+    
 
     onDocumentMouseDown(event) {
         event.preventDefault();
