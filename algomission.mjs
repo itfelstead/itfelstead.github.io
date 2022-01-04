@@ -341,7 +341,7 @@ class AlgoMission {
 
         // Change state if required
         if (this.m_State != newState) {
-            console.log("App State changing from " + this.m_State + " to " + newState);
+            // console.log("App State changing from " + this.m_State + " to " + newState);
             this.onExitState();
             this.m_State = newState;
             this.onEnterState();
@@ -361,13 +361,15 @@ class AlgoMission {
                 this.displayWinnerScreen();
                 break;
             case AlgoMission.TAppState.DEAD:
+                this.hidePlayArea();
                 this.displayDeathScreen();
                 break;
             case AlgoMission.TAppState.RETRY:
+                this.showPlayArea();
                 break;
             case AlgoMission.TAppState.SELECTMAP:
                 this.hidePlayArea();
-                this.m_MapSelectIndex = this.m_SelectedMap;     // start selection at current map
+                this.m_MapSelectIndex = Math.max(0, this.m_SelectedMap);     // start selection at current map
                 this.displayMapScreen();
                 break;
         }
@@ -452,6 +454,8 @@ class AlgoMission {
 
                 self.getLoadingManager().removeLoadingScreen();
 
+                self.setMeshVisibility( "sky", true);
+
                 self.toggleGridHelper();
 
                 self.m_ScoreManager.createScore();
@@ -530,6 +534,8 @@ class AlgoMission {
             function (texture) {
                 var material = new THREE.MeshBasicMaterial({ map: texture });
                 var mesh = new THREE.Mesh(skyGeo, material);
+                mesh.name = "sky";
+                mesh.visible = false;       // don't show it straight away
                 self.m_Scene.add(mesh);
 
                 self.getLoadingManager().markJobComplete("sky");
@@ -543,6 +549,13 @@ class AlgoMission {
                 //console.log( 'Error loading sky texture ' + AlgoMission.SKY_TEXTURE );
             }
         );
+    }
+
+    setMeshVisibility( meshName, visibility ) {
+        let mesh = this.m_Scene.getObjectByName(meshName);
+        if( mesh ) {
+            mesh.visible = visibility;
+        }
     }
 
     addAudio(camera) {
@@ -809,31 +822,29 @@ class AlgoMission {
     displayDeathScreen() {
 
         let distanceFromCamera = 10;
+
+        let screenWidth = this.getBestSelectMapScreenWidth(distanceFromCamera);
+        let halfScreen = (screenWidth/2);    // as it is 0 centered
+        let maxButtonWidth = screenWidth/4;
         let textHeight = 1;
 
         let retryMesh = this.messageToMesh("Try again?", textHeight, 0xFFFFFF, undefined);
         retryMesh.name = "retryButton";
-
+        this.limitViaScale( retryMesh, retryMesh.userData.width, maxButtonWidth );
+        let retryScale = retryMesh.scale.x;
         let chooseMapMesh = this.messageToMesh("Choose map", textHeight, 0xFFFFFF, undefined);
         chooseMapMesh.name = "chooseMapButton";
+        this.limitViaScale( chooseMapMesh, chooseMapMesh.userData.width, maxButtonWidth );
+        let chooseScale = chooseMapMesh.scale.x;
 
-        let box = new THREE.Box3().setFromObject( retryMesh );
-        let dimensions = new THREE.Vector3();
-        box.getSize(dimensions);
-        let retryWidth = dimensions.x;
+        let retryActualSize = retryMesh.userData.width*retryScale;
+        let retryXPos = ((halfScreen - retryActualSize) / 2) + (retryActualSize/2); 
 
+        retryMesh.position.set( -retryXPos, 0, -distanceFromCamera );
 
-        box = new THREE.Box3().setFromObject( chooseMapMesh );
-        dimensions = new THREE.Vector3();
-        box.getSize(dimensions);
-    
-        let screenWidth = this.getBestSelectMapScreenWidth(distanceFromCamera);
-
-        let halfScreen = (screenWidth/2);    // as it is 0 centered
-        let retryPadding = (halfScreen - retryWidth) / 2;
-
-        retryMesh.position.set( -(halfScreen-retryPadding), 0, -distanceFromCamera );
-        chooseMapMesh.position.set( retryPadding, 0, -distanceFromCamera );
+        let chooseActualSize = chooseMapMesh.userData.width*chooseScale;
+        let chooseXPos = ((halfScreen - chooseActualSize) / 2) + (chooseActualSize/2); 
+        chooseMapMesh.position.set( chooseXPos, 0, -distanceFromCamera );
 
         this.m_RetryButtonObjects.push(retryMesh);
         this.m_RetryButtonObjects.push(chooseMapMesh);
@@ -1122,6 +1133,7 @@ class AlgoMission {
         let mapIdTextHeight = 0.75;
         let mapIdText = "Map #" + mapIdx + ": " +  mapDef.name;
         let mapIdMsgMesh = this.messageToMesh(mapIdText, mapIdTextHeight, 0xFFFFFF, undefined);
+        this.limitViaScale( mapIdMsgMesh, mapIdMsgMesh.userData.width, thumbnailWidth );
         mapIdMsgMesh.position.set( thumbMesh.position.x, thumbMesh.position.y+(thumbnailHeight/2)+mapIdTextHeight, -(distanceFromCamera) );
         mapIdMsgMesh.name = mapIdx;
         mapSelectGroup.add( mapIdMsgMesh );
@@ -1130,12 +1142,30 @@ class AlgoMission {
         let mapDescrTextHeight = 0.4;
         let mapDescrText = mapDef.instructions;
         let mapDescrMesh = this.messageToMesh(mapDescrText, mapDescrTextHeight, 0xFFFFFF, undefined);
+        this.limitViaScale( mapDescrMesh, mapDescrMesh.userData.width, thumbnailWidth );
         mapDescrMesh.position.set( thumbMesh.position.x, thumbMesh.position.y-(thumbnailHeight/2)-mapDescrTextHeight, -(distanceFromCamera) );
         mapDescrMesh.name = mapIdx;
         mapSelectGroup.add( mapDescrMesh );
 
         this.m_MapSelectionObjects.push(mapSelectGroup);
         this.m_Camera.add(mapSelectGroup);
+    }
+
+    limitViaScale( meshToLimit, meshWidth, maxWidth ) {
+        const targetPercent = 100;
+        if( meshWidth > maxWidth ) {
+            let scale = this.determineScale( maxWidth, targetPercent, meshWidth);
+            meshToLimit.scale.set(scale, scale, scale );
+        }
+    }
+
+    // TODO move to a utils module
+    determineScale( windowWidth, desiredPercentage, objectWidth ) {
+        let widthAsPercentOfWindow = objectWidth / (windowWidth/100);
+        let currentEffectiveScale = widthAsPercentOfWindow/100;
+        let requiredScaleFor100Percent = 1 / currentEffectiveScale;
+        let requiredScaleForDesiredPercent = (requiredScaleFor100Percent / 100) * desiredPercentage;
+        return requiredScaleForDesiredPercent;
     }
 
     addMapSelectArrow( arrow, name, xPos, yPos, zPos, yRot ) {
@@ -1285,12 +1315,13 @@ class AlgoMission {
                     this.displayMapScreen();
                 }
                 else if( mapSelected == "mapSelectNextArrow" ) {
-                  
                     let batch = Math.trunc(this.m_MapSelectIndex / this.m_MapBatchSize);
                     batch++;
+
                     if( batch * this.m_MapBatchSize >= this.m_MapManager.jsonMaps.length ) {
                         batch--;
                     }
+
                     this.m_MapSelectIndex = batch * this.m_MapBatchSize;
                     this.displayMapScreen();
                 }

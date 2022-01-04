@@ -151,7 +151,7 @@ class TileFlairBird {
 
         // Change state if required
         if (this.m_State != newState) {
-            console.log("Bird State changing from " + this.m_State + " to " + newState);
+            // console.log("Bird State changing from " + this.m_State + " to " + newState);
             this.onExitState();
             this.m_State = newState;
             this.onEnterState();

@@ -67,8 +67,11 @@ class LoadingManager {
 
         let loadingMsgMesh = this.m_GameMgr.messageToMesh("LOADING", 2, 0xFFFFFF, undefined);
         
-        loadingMsgMesh.position.set( -(loadingMsgMesh.userData.width/2), (screenHeight/2) - loadingMsgMesh.userData.height/2, -distanceFromCamera );  // top, middle
         loadingMsgMesh.name = "loadingMsgMesh";
+        let scale = this.m_GameMgr.determineScale( screenWidth, 33, loadingMsgMesh.userData.width );
+        loadingMsgMesh.scale.set( scale, scale, scale );
+        // or to left justify X : -((loadingMsgMesh.userData.width*scale)/2)
+        loadingMsgMesh.position.set( 0, ((screenHeight)/2) - loadingMsgMesh.userData.height/2, -distanceFromCamera );  // top, middle
         this.m_GameMgr.getCamera().add(loadingMsgMesh);
 
         let vertSpacing = screenHeight * 0.05;     // 5%
@@ -77,7 +80,9 @@ class LoadingManager {
         for (var job in this.m_JobMonitor) {
 
             let jobMesh = this.m_GameMgr.messageToMesh(job, 1, 0xFFFFFF, undefined);
-            yOffset = yOffset - vertSpacing - jobMesh.userData.height/2;
+            scale = this.m_GameMgr.determineScale( screenWidth, 10, jobMesh.userData.width );
+            jobMesh.scale.set( scale, scale, scale );
+            yOffset = yOffset - vertSpacing - (jobMesh.userData.height*scale)/2;
             jobMesh.position.set( 0, yOffset, -distanceFromCamera );  // middle
             jobMesh.name = job;
             this.m_GameMgr.getCamera().add(jobMesh);

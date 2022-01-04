@@ -332,7 +332,7 @@ class Bot {
 
     // Change state if required
     if (this.state != newState) {
-      console.log("Bot state changing from " + this.state + " to " + newState);
+      // console.log("Bot state changing from " + this.state + " to " + newState);
       this.onExitState();
       this.state = newState;
       this.onEnterState();
