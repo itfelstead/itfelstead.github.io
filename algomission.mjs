@@ -1181,8 +1181,7 @@ class AlgoMission {
             let self = this;
             setTimeout( function() {
                 self.m_ClickBlackoutHack = false;
-            }, 10000);
-
+            }, 100);
             this.handleClickByState( event );
         }
     }
