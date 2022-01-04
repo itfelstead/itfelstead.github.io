@@ -933,10 +933,7 @@ class MapManager
 
 	getTileRole( tileId )
 	{
-		console.log("Map, tile is triggered: ", tileId );
-
 		var role = '';
-
 		var tileObject = this.idToMapObject[ tileId ];
 		if( typeof(tileObject) == "undefined" )
 		{

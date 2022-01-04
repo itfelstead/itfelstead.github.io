@@ -17,6 +17,9 @@ import { ControlPanel } from './modules/controlpanel.mjs';
 import { ScoreManager } from './modules/scoremanager.mjs';
 import { LoadingManager } from './modules/loadingmanager.mjs';
 
+import { messageToMesh, limitViaScale, getScreenHeightAtCameraDistance, getScreenWidthAtCameraDistance, getBestSelectMapScreenWidth } from './modules/algoutils.js'; 	        // utility functions
+
+
 // Global Namespace
 var ALGO = ALGO || {};
 
@@ -142,7 +145,7 @@ class AlgoMission {
 	}
 
     updateTriggered(notificationType, notificationValue) {
-        console.log("Window got an event from the map, " + notificationType + ", " + notificationValue);
+        // console.log("Window got an event from the map, " + notificationType + ", " + notificationValue);
         
         switch( notificationType ) {
             case AlgoMission.TNotificationType.TILE_CHANGE:
@@ -151,6 +154,10 @@ class AlgoMission {
                     // Tell the bot the bad news... this in turn will trigger out own state change (once bot has finished dying)
                     this.notifyObservers( AlgoMission.TNotificationType.STATE_CHANGE, AlgoMission.TAppState.DEAD );
                 }
+            break;
+
+            case AlgoMission.TNotificationType.SCORE_CHANGE:
+                // NOOP - we don't care
             break;
 
             default:
@@ -409,7 +416,7 @@ class AlgoMission {
 
         this.addLoadingManager();
 
-        this.getLoadingManager().displayLoadingScreen();
+        this.getLoadingManager().displayLoadingScreen( this.m_Camera );
 
         this.addAudio(this.m_Camera);
 
@@ -458,7 +465,7 @@ class AlgoMission {
 
                 self.toggleGridHelper();
 
-                self.m_ScoreManager.createScore();
+                self.m_ScoreManager.createScore( self.m_Camera );
             }
         }, 100);
     }
@@ -626,8 +633,8 @@ class AlgoMission {
 
         let distanceFromCamera = 10;
 
-		const screenHeight = this.getScreenHeightAtCameraDistance( distanceFromCamera );
-        const screenWidth = this.getScreenWidthAtCameraDistance( distanceFromCamera, screenHeight );
+		const screenHeight = getScreenHeightAtCameraDistance( distanceFromCamera, this.m_Camera.fov );
+        const screenWidth = getScreenWidthAtCameraDistance( distanceFromCamera, screenHeight, this.m_Camera.aspect );
 
         this.m_ControlPanel.createControlPanel(instructionMgr, textureLoader, screenWidth, screenHeight, distanceFromCamera );
     }
@@ -647,7 +654,8 @@ class AlgoMission {
     }
 
     loadWinnerModels( glTFLoader ) {
-        if( this.getLoadingManager().isLoaded("trophy") == false ) {
+        if( this.getLoadingManager().jobExists() == false ) {
+            this.getLoadingManager().addJobMonitor("trophy");
             this.loadModel( "./models/Trophy_SyntyStudios/scene.gltf", glTFLoader, this.trophyCreatedCb.bind(this) );
         }
     }
@@ -702,12 +710,12 @@ class AlgoMission {
         trophySpotlight.name = "trophySpotlight";
         this.m_Camera.add(trophySpotlight);
         
-        let messageMesh = this.messageToMesh("Well done!", 1.25, 0x000000, undefined);
+        let messageMesh = messageToMesh(document, "Well done!", 1.25, 0x000000, undefined);
         messageMesh.position.set( 0, -4, -10 );
         messageMesh.name = "wellDoneMsg";
         this.m_Camera.add(messageMesh);
 
-        let newMissionMesh = this.messageToMesh("(click mouse for a new mission)", 1, 0x000000, undefined);
+        let newMissionMesh = messageToMesh(document, "(click mouse for a new mission)", 1, 0x000000, undefined);
         newMissionMesh.position.set( 0, -6, -10 );
         newMissionMesh.name = "newMissionMsg";
         
@@ -751,42 +759,6 @@ class AlgoMission {
         })();
     }
 
-    messageToMesh( msg, msgHeight, fgColour, optionalBgColour ) {
-        let msgCanvas = document.createElement("canvas");
-        let context = msgCanvas.getContext("2d");
-        context.font = "40px sans-serif"; 
-        let border = 0.25;
-
-        let worldMultiplier = msgHeight/40;     // i.e. font size
-        let msgWidth = (context.measureText(msg).width * worldMultiplier) + border;
-        let totalWidth = Math.ceil( msgWidth/ worldMultiplier);
-        let totalHeight = Math.ceil( (msgHeight+border) / worldMultiplier);
-        msgCanvas.width = totalWidth;
-        msgCanvas.height = totalHeight;
-
-        if (optionalBgColour != undefined) {
-            context.fillStyle = "#" + optionalBgColour.toString(16).padStart(6, '0');
-            context.fillRect( 0,0, totalWidth,totalHeight);
-        }
-
-        context.textAlign = "center";
-        context.textBaseline = "middle"; 
-        context.fillStyle = "#" + fgColour.toString(16).padStart(6, '0');
-        context.font = "40px sans-serif"; 
-        context.fillText(msg, totalWidth/2, totalHeight/2);
-        
-        let texture = new THREE.Texture(msgCanvas);
-        texture.minFilter = THREE.LinearFilter;
-        texture.needsUpdate = true;
-
-        let planeGeo = new THREE.PlaneGeometry(msgWidth, (msgHeight+border) );
-        let material = new THREE.MeshBasicMaterial( { side:THREE.DoubleSide, map:texture, transparent:true, opacity:1.0 } );
-        let mesh = new THREE.Mesh(planeGeo, material);
-        mesh.userData.width = msgWidth;
-        mesh.userData.height = (msgHeight+border);
-        return mesh;
-    }
-
     removeWinnerScreen() {
 
         let missionMsg = this.m_Camera.getObjectByName("newMissionMsg");
@@ -823,18 +795,18 @@ class AlgoMission {
 
         let distanceFromCamera = 10;
 
-        let screenWidth = this.getBestSelectMapScreenWidth(distanceFromCamera);
+        let screenWidth = getBestSelectMapScreenWidth(distanceFromCamera, this.m_Camera.aspect, this.m_Camera.fov);
         let halfScreen = (screenWidth/2);    // as it is 0 centered
         let maxButtonWidth = screenWidth/4;
         let textHeight = 1;
 
-        let retryMesh = this.messageToMesh("Try again?", textHeight, 0xFFFFFF, undefined);
+        let retryMesh = messageToMesh(document, "Try again?", textHeight, 0xFFFFFF, undefined);
         retryMesh.name = "retryButton";
-        this.limitViaScale( retryMesh, retryMesh.userData.width, maxButtonWidth );
+        limitViaScale( retryMesh, retryMesh.userData.width, maxButtonWidth );
         let retryScale = retryMesh.scale.x;
-        let chooseMapMesh = this.messageToMesh("Choose map", textHeight, 0xFFFFFF, undefined);
+        let chooseMapMesh = messageToMesh(document, "Choose map", textHeight, 0xFFFFFF, undefined);
         chooseMapMesh.name = "chooseMapButton";
-        this.limitViaScale( chooseMapMesh, chooseMapMesh.userData.width, maxButtonWidth );
+        limitViaScale( chooseMapMesh, chooseMapMesh.userData.width, maxButtonWidth );
         let chooseScale = chooseMapMesh.scale.x;
 
         let retryActualSize = retryMesh.userData.width*retryScale;
@@ -864,30 +836,6 @@ class AlgoMission {
     removeDeathScreen() {
         this.removeRetryButtons();
      }
-
-    getBestSelectMapScreenWidth( distance ) {
-
-        let screenHeight = this.getScreenHeightAtCameraDistance( distance );
-
-        // We want enough vertical space for, say, 2 maps high (so we can add arrows)
-        // so limit the aspect ratio if necessary
-        let aspect = Math.min( 1.5, this.m_Camera.aspect );
-
-        let screenWidth = screenHeight * aspect;
-        
-        return screenWidth;
-    }
-
-    getScreenWidthAtCameraDistance( distance, height ) {
-        var visibleWidth = height * this.m_Camera.aspect;
-        return visibleWidth;
-    }
-
-    getScreenHeightAtCameraDistance( distance ) {
-        var vFOV = THREE.MathUtils.degToRad( this.m_Camera.fov ); // convert vertical fov to radians
-        var height = 2 * Math.tan( vFOV / 2 ) * distance; 
-        return height;
-    }
 
     displayMapScreen() {
         this.m_SelectedMap = -1;
@@ -954,7 +902,7 @@ class AlgoMission {
         this.removeMapSelectionMeshes();
 
         let distanceFromCamera = 10;
-        let selectMapScreenSize = this.getBestSelectMapScreenWidth( distanceFromCamera );
+        let selectMapScreenSize = getBestSelectMapScreenWidth( distanceFromCamera, this.m_Camera.aspect, this.m_Camera.fov );
 
         if( selectMapScreenSize < 17 ) {
             this.m_MapBatchSize = 1;
@@ -1123,7 +1071,7 @@ class AlgoMission {
         // Add highest score
         let highestScore = this.m_MapManager.getHighScore(mapIdx);
         let highScoreMsg = "High score: " + highestScore.toString();
-        let highScoreMesh = this.messageToMesh(highScoreMsg, 0.33, 0xFFFFFF, undefined);
+        let highScoreMesh = messageToMesh(document, highScoreMsg, 0.33, 0xFFFFFF, undefined);
         let bottomOffset = thumbMesh.position.y - (thumbnailHeight/2);
         highScoreMesh.position.set( awardXOffset + (highScoreMesh.userData.width/2), bottomOffset + (highScoreMesh.userData.height/2), -10 );
         highScoreMesh.name = "highScoreMsg";
@@ -1132,8 +1080,8 @@ class AlgoMission {
         // Add map Id text
         let mapIdTextHeight = 0.75;
         let mapIdText = "Map #" + mapIdx + ": " +  mapDef.name;
-        let mapIdMsgMesh = this.messageToMesh(mapIdText, mapIdTextHeight, 0xFFFFFF, undefined);
-        this.limitViaScale( mapIdMsgMesh, mapIdMsgMesh.userData.width, thumbnailWidth );
+        let mapIdMsgMesh = messageToMesh(document, mapIdText, mapIdTextHeight, 0xFFFFFF, undefined);
+        limitViaScale( mapIdMsgMesh, mapIdMsgMesh.userData.width, thumbnailWidth );
         mapIdMsgMesh.position.set( thumbMesh.position.x, thumbMesh.position.y+(thumbnailHeight/2)+mapIdTextHeight, -(distanceFromCamera) );
         mapIdMsgMesh.name = mapIdx;
         mapSelectGroup.add( mapIdMsgMesh );
@@ -1141,31 +1089,14 @@ class AlgoMission {
         // Add map descriptive text
         let mapDescrTextHeight = 0.4;
         let mapDescrText = mapDef.instructions;
-        let mapDescrMesh = this.messageToMesh(mapDescrText, mapDescrTextHeight, 0xFFFFFF, undefined);
-        this.limitViaScale( mapDescrMesh, mapDescrMesh.userData.width, thumbnailWidth );
+        let mapDescrMesh = messageToMesh(document, mapDescrText, mapDescrTextHeight, 0xFFFFFF, undefined);
+        limitViaScale( mapDescrMesh, mapDescrMesh.userData.width, thumbnailWidth );
         mapDescrMesh.position.set( thumbMesh.position.x, thumbMesh.position.y-(thumbnailHeight/2)-mapDescrTextHeight, -(distanceFromCamera) );
         mapDescrMesh.name = mapIdx;
         mapSelectGroup.add( mapDescrMesh );
 
         this.m_MapSelectionObjects.push(mapSelectGroup);
         this.m_Camera.add(mapSelectGroup);
-    }
-
-    limitViaScale( meshToLimit, meshWidth, maxWidth ) {
-        const targetPercent = 100;
-        if( meshWidth > maxWidth ) {
-            let scale = this.determineScale( maxWidth, targetPercent, meshWidth);
-            meshToLimit.scale.set(scale, scale, scale );
-        }
-    }
-
-    // TODO move to a utils module
-    determineScale( windowWidth, desiredPercentage, objectWidth ) {
-        let widthAsPercentOfWindow = objectWidth / (windowWidth/100);
-        let currentEffectiveScale = widthAsPercentOfWindow/100;
-        let requiredScaleFor100Percent = 1 / currentEffectiveScale;
-        let requiredScaleForDesiredPercent = (requiredScaleFor100Percent / 100) * desiredPercentage;
-        return requiredScaleForDesiredPercent;
     }
 
     addMapSelectArrow( arrow, name, xPos, yPos, zPos, yRot ) {
@@ -1232,19 +1163,15 @@ class AlgoMission {
         this.m_Renderer.setSize(width, height);
     }
 
-    // Detect object clicks
     onDocumentTouchStart(event) {
         event.preventDefault();
         event.clientX = event.touches[0].clientX;
         event.clientY = event.touches[0].clientY;
-        this.onDocumentMouseDown(event);
+        this.handleClickByState(event);
     }
 
     onDocumentMouseDown(event) {
-
         event.preventDefault();
-        event.stopImmediatePropagation();
-
         this.handleClickByState( event );
     }
 
@@ -1341,14 +1268,7 @@ class AlgoMission {
     }
 
 	detectInstructionPress(xPos, yPos, raycaster) {
-        var activeButtons = this.m_ControlPanel.getActiveButtons();
-        var buttonObjects = [];
-		for (var key in activeButtons) {
-			var mesh = activeButtons[key];
-
-			buttonObjects.push(mesh);
-		}
-        return this.detectButtonPress( xPos, yPos, raycaster, buttonObjects );
+        return this.detectButtonPress( xPos, yPos, raycaster, this.m_ControlPanel.getActiveButtons() );
     }
 
     detectButtonPress( xPos, yPos, raycaster, buttonsToCheck ) {

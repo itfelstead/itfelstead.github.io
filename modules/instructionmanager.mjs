@@ -68,7 +68,7 @@ class InstructionManager {
 
 	// Note: called for both mapManager and gameMgr notifications
 	updateTriggered(notificationType, notificationValue) {
-		console.log("InstructionManager got an event from the map, " + notificationType + ", " + notificationValue);
+		// console.log("InstructionManager got an event from the map, " + notificationType + ", " + notificationValue);
 
 		if( notificationType == AlgoMission.TNotificationType.STATE_CHANGE ) {
 			if( notificationValue == AlgoMission.TAppState.DEAD ) {

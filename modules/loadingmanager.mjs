@@ -9,7 +9,7 @@
 // Global Namespace
 var ALGO = ALGO || {};
 
-import { AlgoMission } from '../algomission.mjs'; 	// for stuff that should really be in a utils class
+import { messageToMesh, limitViaScale, determineScale, getScreenHeightAtCameraDistance, getScreenWidthAtCameraDistance } from './algoutils.js'; 	        // utility functions
 
 class LoadingManager {
 
@@ -55,21 +55,24 @@ class LoadingManager {
         if( this.m_JobMonitor.hasOwnProperty(job) ) {
             return this.m_JobMonitor[job];
         }
-        console.log("Warning: Job not found; " + job );
         return false;
     }
 
-    displayLoadingScreen() {
+    jobExists( job ) {
+        return this.m_JobMonitor.hasOwnProperty(job);
+    }
+
+    displayLoadingScreen( camera ) {
 
         let distanceFromCamera = 10;
-        const screenHeight = this.m_GameMgr.getScreenHeightAtCameraDistance( distanceFromCamera );
-        const screenWidth = this.m_GameMgr.getScreenWidthAtCameraDistance( distanceFromCamera, screenHeight );
+        const screenHeight = getScreenHeightAtCameraDistance( distanceFromCamera, camera.fov );
+        const screenWidth = getScreenWidthAtCameraDistance( distanceFromCamera, screenHeight, camera.aspect );
 
-        let loadingMsgMesh = this.m_GameMgr.messageToMesh("LOADING", 2, 0xFFFFFF, undefined);
+        let loadingMsgMesh = messageToMesh(document, "LOADING", 2, 0xFFFFFF, undefined);
         
         loadingMsgMesh.name = "loadingMsgMesh";
-        let scale = this.m_GameMgr.determineScale( screenWidth, 33, loadingMsgMesh.userData.width );
-        loadingMsgMesh.scale.set( scale, scale, scale );
+        let scale = determineScale( screenWidth, 33, loadingMsgMesh.userData.width );
+        loadingMsgMesh.scale.set( scale, scale, 1 );
         // or to left justify X : -((loadingMsgMesh.userData.width*scale)/2)
         loadingMsgMesh.position.set( 0, ((screenHeight)/2) - loadingMsgMesh.userData.height/2, -distanceFromCamera );  // top, middle
         this.m_GameMgr.getCamera().add(loadingMsgMesh);
@@ -79,9 +82,9 @@ class LoadingManager {
 
         for (var job in this.m_JobMonitor) {
 
-            let jobMesh = this.m_GameMgr.messageToMesh(job, 1, 0xFFFFFF, undefined);
-            scale = this.m_GameMgr.determineScale( screenWidth, 10, jobMesh.userData.width );
-            jobMesh.scale.set( scale, scale, scale );
+            let jobMesh = messageToMesh(document, job, 1, 0xFFFFFF, undefined);
+            scale = determineScale( screenWidth, 10, jobMesh.userData.width );
+            jobMesh.scale.set( scale, scale, 1 );
             yOffset = yOffset - vertSpacing - (jobMesh.userData.height*scale)/2;
             jobMesh.position.set( 0, yOffset, -distanceFromCamera );  // middle
             jobMesh.name = job;

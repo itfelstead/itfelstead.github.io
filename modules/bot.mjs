@@ -587,7 +587,6 @@ class Bot {
     if (this.scale < 0) {
       this.scale = 0;
     }
-    // console.log( "shrinkage = " + this.scale);
   }
 
   /**
@@ -645,10 +644,9 @@ class Bot {
         else if (this.deathSpin == Bot.TDeathSpin.BACK) {
           x = -this.rotationInFall;
         }
-        else if (this.deathSpin == Bot.TDeathSpin.FORWARD) {
+        else if (this.deathSpin == Bot.TDeathSpin.FORWARDS) {
           x = this.rotationInFall;
         }
-
         this.mesh.scale.set(this.scale, this.scale, this.scale);
       }
 

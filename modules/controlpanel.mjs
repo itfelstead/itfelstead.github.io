@@ -14,6 +14,7 @@ var ALGO = ALGO || {};
 import * as THREE from 'https://cdn.skypack.dev/pin/three@v0.135.0-pjGUcRG9Xt70OdXl97VF/mode=imports,min/optimized/three.js';
 
 import { InstructionManager } from './instructionmanager.mjs';
+import { limitViaScale } from './algoutils.js'; 	        // utility functions
 
 class ControlPanel {
 
@@ -24,6 +25,7 @@ class ControlPanel {
 	constructor( camera ) {
 		this.controlPanelObjects = {}; // an array of buttons (meshes)
 
+		this.controlPanelGroup = null;
 		this.panelCamera = camera;
 	}
 
@@ -42,7 +44,12 @@ class ControlPanel {
 	*
 	*/
 	createControlPanel(instructionMgr, textureLoader, screenWidth, screenHeight, distanceFromCamera ) {
-		this.controlPanelObjects = {};
+		if( this.controlPanelGroup != null ) {
+			console.log("Warning: control panel already exists");
+			return;
+		}
+
+		this.controlPanelGroup = new THREE.Group();
 
 		// Layout is something like this (x grows left, y grows up)
 		//
@@ -69,9 +76,6 @@ class ControlPanel {
 			{ "id": InstructionManager.instructionConfig.PAUSE, "x": 1, "y": 2, "z": defaultZ, "pic": "Stop256.png" }
 		];
 
-        const xOffset = (screenWidth/2) - (boxSize*4);
-        const yOffset = 0;
-
 		for (var i = 0; i < panelConfig.length; i++) {
 			var buttonConfig = panelConfig[i];
 			var picture = buttonConfig.pic;
@@ -80,35 +84,38 @@ class ControlPanel {
 			var buttonGeo = new THREE.PlaneGeometry(boxSize,boxSize);
 			var buttonMaterial = new THREE.MeshBasicMaterial({ map: texture, transparent:true, opacity:1.0 });
 			var buttonMesh = new THREE.Mesh(buttonGeo, buttonMaterial);
-
-			buttonMesh.position.set(-(xOffset + gridOffset + (buttonConfig.x * stepSize)), yOffset + gridOffset + (buttonConfig.y * stepSize), -distanceFromCamera);
-
 			buttonMesh.name = buttonConfig.id;
-
-			this.controlPanelObjects[buttonConfig.id] = buttonMesh;
+			buttonMesh.position.set(-(gridOffset + (buttonConfig.x * stepSize)), gridOffset + (buttonConfig.y * stepSize), -distanceFromCamera);
+			
+			this.controlPanelGroup.add( buttonMesh );
 		}
 
+		const box = new THREE.Box3( ).setFromObject( this.controlPanelGroup );
+		const size = box.getSize( new THREE.Vector3( ) );
+
+		if( size.x*3 > screenWidth ) {
+			// Screen is small (less than 3 panels wide), so best to place it centrally at bottom of the screen
+			limitViaScale( this.controlPanelGroup, size.x, screenWidth/2 );
+			this.controlPanelGroup.position.set( 0, -( (screenHeight/2.5) - (size.y*this.controlPanelGroup.scale.y)/2) );
+		}
+		else {
+			// Screen is large enough to shove the controls on the left
+			this.controlPanelGroup.position.set( -( (screenWidth/2) - ((size.x*this.controlPanelGroup.scale.x)/2) ), 0 );
+		}
 	}
 
 	addButtons( camera ) {
 		// TODO - animation
-
-		for (var key in this.controlPanelObjects) {
-			camera.add( this.controlPanelObjects[key] );
-		}
-		
+		camera.add( this.controlPanelGroup );		
 	}
 
 	removeButtons( camera ) {
 		// TODO - animation
-
-		for (var key in this.controlPanelObjects) {
-			camera.remove( this.controlPanelObjects[key] );
-		}
+		camera.remove( this.controlPanelGroup  );
 	}
 
 	getActiveButtons() {
-		return this.controlPanelObjects;
+		return this.controlPanelGroup.children;
 	}
 }
 
