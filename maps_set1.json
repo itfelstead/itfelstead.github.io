@@ -26,7 +26,21 @@
         {
             "mapid": 0,
             "name": "Straight Forward",
-            "instructions": "Your first few steps...",
+            "instructions": "Your first few steps (and a wait!)...",
+            "hint": "go forward once, then wait (so, 2 instructions)",
+            "difficulty": 1,
+            "successCriteria": 1,
+            "maximumScore": 1,
+            "tileLayout": [
+                { "x": 0, "z":-1, "id": "tile_bottom_deadend" },
+                { "x": 0, "z": 0, "id": "tile_vert", "role": "START" },
+                { "x": 0, "z": 1, "id": "tile_top_deadend", "role": "BUSSTOP"  }
+            ]
+        },
+        {
+            "mapid": 1,
+            "name": "A bit further..",
+            "instructions": "You need to go further forward this time",
             "hint": "forward 3 times, then wait (so 4 instructions in total)",
             "difficulty": 1,
             "successCriteria": 1,
@@ -34,31 +48,48 @@
             "tileLayout": [
                 { "x": 0, "z":-1, "id": "tile_bottom_deadend" },
                 { "x": 0, "z": 0, "id": "tile_vert", "role": "START" },
-                { "x": 0, "z": 1, "id": "tile_vert", "role": "SPECIAL_BIRD" },
-                { "x": 0, "z": 2, "id": "tile_vert", "role": "SPECIAL_BIRD" },
-                { "x": 0, "z": 3, "id": "tile_vert", "role": "BUSSTOP"  }
+                { "x": 0, "z": 1, "id": "tile_vert" },
+                { "x": 0, "z": 2, "id": "tile_vert" },
+                { "x": 0, "z": 3, "id": "tile_top_deadend", "role": "BUSSTOP"  }
             ]
         },
         {
-            "mapid": 1,
+            "mapid": 2,
+            "name": "Is it a bird?..",
+            "instructions": "Use your horn to warn the bird!",
+            "hint": "Use the horn, then forward 2 times, then wait (4 instructions)",
+            "difficulty": 1,
+            "successCriteria": 1,
+            "maximumScore": 1,
+            "tileLayout": [
+                { "x": 0, "z":-1, "id": "tile_bottom_deadend" },
+                { "x": 0, "z": 0, "id": "tile_vert", "role": "START" },
+                { "x": 0, "z": 1, "id": "tile_vert", "role": "SPECIAL_BIRD" },
+                { "x": 0, "z": 2, "id": "tile_top_deadend", "role": "BUSSTOP"  }
+            ]
+        },
+
+        {
+            "mapid": 3,
             "name": "The Left Turn",
             "instructions": "Now lets try the steering wheel!",
-            "hint": "if you pick up everyone, you get more points!",
+            "hint": "forward once, turn left, forward and wait (4 instructions)",
             "difficulty": 1,
             "successCriteria": 1,
             "maximumScore": 2,
             "tileLayout": [
                 { "x": 0, "z":-1, "id": "tile_bottom_deadend" },
                 { "x": 0, "z": 0, "id": "tile_vert", "role": "START" },
-                { "x": 0, "z": 1, "id": "tile_vert", "role": "BUSSTOP" },
+                { "x": 0, "z": 1, "id": "tile_vert" },
                 { "x": 0, "z": 2, "id": "tile_bend_right_down" },
-                { "x": 1, "z": 2, "id": "tile_horiz", "role": "BUSSTOP" }
+                { "x": 1, "z": 2, "id": "tile_left_deadend", "role": "BUSSTOP" }
             ]
         },
         {
-            "mapid": 2,
+            "mapid": 4,
             "name": "Left, Right!",
             "instructions": "OK, time to get dizzy...",
+            "hint": "forward, turn left, forward, turn right, forward and wait",
             "difficulty": 1,
             "successCriteria": 1,
             "maximumScore": 1,
@@ -73,7 +104,7 @@
             ]
         },
         {
-            "mapid": 3,
+            "mapid": 5,
             "name": "Loopy!",
             "instructions": "OK, not dizzy enough? try this!",
             "difficulty": 3,
@@ -87,55 +118,7 @@
                 { "x":0, "z": 1, "id": "tile_vert" },
                 { "x":0, "z": 2, "id": "tile_cross" },
                 { "x":-1, "z": 2, "id": "tile_bend_right_up", "role": "SPECIAL_BIRD" },
-                { "x":-1, "z": 3, "id": "tile_bend_right_down", "role": "SPECIAL_BIRD" },
-                { "x":0, "z": 3, "id": "tile_tjunct_horiz_down" },
-                { "x":1, "z": 3, "id": "tile_bend_left_down" },
-                { "x":1, "z": 2, "id": "tile_tjunct_horiz_up" },
-                { "x":2, "z": 2, "id": "tile_horiz", "role": "BUSSTOP" },
-                { "x":3, "z": 2, "id": "tile_left_deadend" }
-            ]
-        }
-        ,
-        {
-            "mapid": 4,
-            "name": "TBD",
-            "instructions": "Scare away the birds!",
-            "difficulty": 3,
-            "successCriteria": 1,
-            "maximumScore": 1,
-            "tileLayout": [
-                { "x": 0, "z":-1, "id": "tile_bottom_deadend" },
-                { "x": 1, "z":0, "id": "tile_left_deadend" },
-                { "x": -1, "z":0, "id": "tile_right_deadend" },
-                { "x": 0, "z": 0, "id": "tile_cross", "role": "START" },
-                { "x":0, "z": 1, "id": "tile_vert" },
-                { "x":0, "z": 2, "id": "tile_cross" },
-                { "x":-1, "z": 2, "id": "tile_bend_right_up", "role": "SPECIAL_BIRD" },
-                { "x":-1, "z": 3, "id": "tile_bend_right_down", "role": "SPECIAL_BIRD" },
-                { "x":0, "z": 3, "id": "tile_tjunct_horiz_down" },
-                { "x":1, "z": 3, "id": "tile_bend_left_down" },
-                { "x":1, "z": 2, "id": "tile_tjunct_horiz_up" },
-                { "x":2, "z": 2, "id": "tile_horiz", "role": "BUSSTOP" },
-                { "x":3, "z": 2, "id": "tile_left_deadend" }
-            ]
-        }
-        ,
-        {
-            "mapid": 5,
-            "name": "TBD",
-            "instructions": "More people?!",
-            "difficulty": 3,
-            "successCriteria": 1,
-            "maximumScore": 1,
-            "tileLayout": [
-                { "x": 0, "z":-1, "id": "tile_bottom_deadend" },
-                { "x": 1, "z":0, "id": "tile_left_deadend" },
-                { "x": -1, "z":0, "id": "tile_right_deadend" },
-                { "x": 0, "z": 0, "id": "tile_cross", "role": "START" },
-                { "x":0, "z": 1, "id": "tile_vert" },
-                { "x":0, "z": 2, "id": "tile_cross" },
-                { "x":-1, "z": 2, "id": "tile_bend_right_up", "role": "SPECIAL_BIRD" },
-                { "x":-1, "z": 3, "id": "tile_bend_right_down", "role": "SPECIAL_BIRD" },
+                { "x":-1, "z": 3, "id": "tile_bend_right_down" },
                 { "x":0, "z": 3, "id": "tile_tjunct_horiz_down" },
                 { "x":1, "z": 3, "id": "tile_bend_left_down" },
                 { "x":1, "z": 2, "id": "tile_tjunct_horiz_up" },
@@ -143,27 +126,121 @@
                 { "x":3, "z": 2, "id": "tile_left_deadend" }
             ]
         },
+
         {
             "mapid": 6,
-            "name": "TBD",
-            "instructions": "Getting busy...",
+            "name": "Which way?",
+            "instructions": "As long as you get there, the route doesn't matter!",
+            "hint": "did you use your horn on the bird for more points?",
             "difficulty": 3,
             "successCriteria": 1,
             "maximumScore": 1,
             "tileLayout": [
                 { "x": 0, "z":-1, "id": "tile_bottom_deadend" },
-                { "x": 1, "z":0, "id": "tile_left_deadend" },
+                { "x": 1, "z":0, "id": "tile_horiz" },
+                { "x": 2, "z":0, "id": "tile_bend_left_up", "role": "SPECIAL_BIRD" },
+                { "x": 2, "z":1, "id": "tile_vert" },
                 { "x": -1, "z":0, "id": "tile_right_deadend" },
                 { "x": 0, "z": 0, "id": "tile_cross", "role": "START" },
                 { "x":0, "z": 1, "id": "tile_vert" },
                 { "x":0, "z": 2, "id": "tile_cross" },
-                { "x":-1, "z": 2, "id": "tile_bend_right_up", "role": "SPECIAL_BIRD" },
-                { "x":-1, "z": 3, "id": "tile_bend_right_down", "role": "SPECIAL_BIRD" },
+                { "x":-1, "z": 2, "id": "tile_bend_right_up" },
+                { "x":-1, "z": 3, "id": "tile_bend_right_down" },
                 { "x":0, "z": 3, "id": "tile_tjunct_horiz_down" },
                 { "x":1, "z": 3, "id": "tile_bend_left_down" },
                 { "x":1, "z": 2, "id": "tile_tjunct_horiz_up" },
-                { "x":2, "z": 2, "id": "tile_horiz", "role": "BUSSTOP" },
+                { "x":2, "z": 2, "id": "tile_tjunct_horiz_down", "role": "BUSSTOP" },
                 { "x":3, "z": 2, "id": "tile_left_deadend" }
+            ]
+        },
+        {
+            "mapid":7,
+            "name": "A bit busier!",
+            "instructions": "Try to pick up everyone if you can!",
+            "hint": "Did you manage to pick up everyone for maximum points?",
+            "difficulty": 1,
+            "successCriteria": 1,
+            "maximumScore": 1,
+            "tileLayout": [
+                { "x": 0, "z": 0, "id": "tile_bottom_deadend", "role": "START" },
+                { "x": 0, "z": 1, "id": "tile_vert", "role": "BUSSTOP" },
+                { "x": 0, "z": 2, "id": "tile_vert", "role": "BUSSTOP" },
+                { "x": 0, "z": 3, "id": "tile_top_deadend", "role": "BUSSTOP"  }
+            ]
+        },
+        {
+            "mapid": 8,
+            "name": "Rush hour!",
+            "instructions": "",
+            "hint": "!",
+            "difficulty": 1,
+            "successCriteria": 1,
+            "maximumScore": 2,
+            "tileLayout": [
+                { "x": 0, "z":-1, "id": "tile_bottom_deadend" },
+                { "x": 0, "z": 0, "id": "tile_vert", "role": "START" },
+                { "x": 0, "z": 1, "id": "tile_vert", "role": "BUSSTOP" },
+                { "x": 0, "z": 2, "id": "tile_bend_right_down" },
+                { "x": 1, "z": 2, "id": "tile_bend_left_down", "role": "BUSSTOP" },
+                { "x": 1, "z": 1, "id": "tile_vert", "role": "SPECIAL_BIRD" },
+                { "x": 1, "z": 0, "id": "tile_vert", "role": "BUSSTOP" },
+                { "x": 1, "z": 1, "id": "tile_vert" },
+                { "x": 1, "z": -1, "id": "tile_bottom_deadend", "role": "BUSSTOP" }
+            ]
+        },
+        {
+            "mapid": 9,
+            "name": "Scarecrow",
+            "instructions": "Mega points thanks to the loud horn!",
+            "hint": "Did you manage to scare all the birds with a single blast of the horn?",
+            "difficulty": 1,
+            "successCriteria": 1,
+            "maximumScore": 1,
+            "tileLayout": [
+                { "x": 0, "z":-1, "id": "tile_bottom_deadend" },
+                { "x": 0, "z": 0, "id": "tile_vert", "role": "START" },
+                { "x": 0, "z": 1, "id": "tile_vert" },
+                { "x": 0, "z": 2, "id": "tile_cross", "role": "SPECIAL_BIRD" },
+                { "x": 0, "z": 3, "id": "tile_vert", "role": "BUSSTOP" },
+                { "x": -1, "z": 2, "id": "tile_bend_right_down", "role": "SPECIAL_BIRD" },
+                { "x": 1, "z": 2, "id": "tile_bend_left_down", "role": "SPECIAL_BIRD" },
+                { "x": 1, "z": 1, "id": "tile_bottom_deadend", "role": "SPECIAL_BIRD" },
+                { "x": -1, "z": 1, "id": "tile_bottom_deadend", "role": "SPECIAL_BIRD" }
+            ]
+        },
+        {
+            "mapid": 10,
+            "name": "Off the grid",
+            "instructions": "err.... good luck!",
+            "hint": "Who needs the grid anyway?!",
+            "difficulty": 1,
+            "successCriteria": 1,
+            "maximumScore": 1,
+            "tileLayout": [
+                { "x": 0, "z":-1, "id": "tile_bottom_deadend" },
+                { "x": 0, "z": 0, "id": "tile_vert", "role": "START" },
+                { "x": 0, "z": 1, "id": "tile_vert" },
+                { "x": 0, "z": 2, "id": "tile_cross", "role": "SPECIAL_BIRD" },
+                { "x": 0, "z": 3, "id": "tile_top_deadend", "role": "BUSSTOP" },
+                { "x": -1, "z": 2, "id": "tile_bend_right_down", "role": "SPECIAL_BIRD" },
+                { "x": 1, "z": 2, "id": "tile_bend_left_down", "role": "SPECIAL_BIRD" },
+                { "x": 1, "z": 1, "id": "tile_vert", "role": "SPECIAL_BIRD" },
+                { "x": -1, "z": 1, "id": "tile_vert", "role": "SPECIAL_BIRD" },
+                { "x": 1, "z": 0, "id": "tile_bottom_deadend" },
+                { "x": -1, "z": 0, "id": "tile_bend_left_up" },
+                { "x": -2, "z": 0, "id": "tile_horiz" },
+                { "x": -3, "z": 0, "id": "tile_horiz", "role": "BUSSTOP" },
+                { "x": -4, "z": 0, "id": "tile_bend_right_up" },
+                { "x": -4, "z": 1, "id": "tile_vert" },
+                { "x": -4, "z": 2, "id": "tile_bend_left_down" },
+                { "x": -5, "z": 2, "id": "tile_cross" },
+                { "x": -5, "z": 3, "id": "tile_top_deadend", "role": "SPECIAL_BIRD" },
+                { "x": -5, "z": 1, "id": "tile_vert", "role": "SPECIAL_BIRD" },
+                { "x": -5, "z": 0, "id": "tile_vert" },
+                { "x": -5, "z": -1, "id": "tile_bottom_deadend" },
+                { "x": -6, "z": 2, "id": "tile_bend_right_down", "role": "SPECIAL_BIRD" },
+                { "x": -6, "z": 1, "id": "tile_vert", "role": "BUSSTOP" },
+                { "x": -6, "z": 0, "id": "tile_bottom_deadend" }
             ]
         }
     ]

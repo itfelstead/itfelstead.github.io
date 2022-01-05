@@ -962,7 +962,8 @@ class AlgoMission {
         }
         this.m_MapSelectionObjects = [];
 
-        this.m_Camera.remove( this.m_Camera.getObjectByName("mapSelectSpotlight") );
+        this.m_Camera.remove( this.m_Camera.getObjectByName("mapSelectNextSpotlight") );
+        this.m_Camera.remove( this.m_Camera.getObjectByName("mapSelectPrevSpotlight") );
     }
 
     removeRetryButtons() {
@@ -1001,7 +1002,7 @@ class AlgoMission {
         if( batch > 0 ) {
             this.addMapSelectArrow( this.m_PrevArrow, "mapSelectPrevArrow", -3, -(arrowYOffset), -distanceFromCamera, -1.6 )
         }
-
+ 
         // Set the arrows spinning only once per 'selectLevel' state
         if( !this.m_ArrowsSpinning ) {
 
@@ -1023,10 +1024,16 @@ class AlgoMission {
         }
 
         let spotlight = new THREE.SpotLight( 0xffffff, 1, 20, Math.PI/2  );
-        spotlight.position.set(0,0,distanceFromCamera+1);
+        spotlight.position.set(this.m_NextArrow.position.x,this.m_NextArrow.position.y,0);
         spotlight.target = this.m_NextArrow;
-        spotlight.name = "mapSelectSpotlight";
+        spotlight.name = "mapSelectNextSpotlight";
         this.m_Camera.add(spotlight);
+
+        let prevSpotlight = new THREE.SpotLight( 0xffffff, 1, 20, Math.PI/2  );
+        prevSpotlight.position.set(this.m_PrevArrow.position.x,this.m_PrevArrow.position.y,0);
+        prevSpotlight.target = this.m_PrevArrow;
+        prevSpotlight.name = "mapSelectPrevSpotlight";
+        this.m_Camera.add(prevSpotlight);
     }
 
     addMapSelectThumbnail( mapDef, mapIdx, thumbnailWidth, thumbnailHeight, screenOrder, mapSpacing, xOffset, mapY, distanceFromCamera ) {
@@ -1036,7 +1043,7 @@ class AlgoMission {
         var thumbnailTexture = mapDef.thumbnailTexture;
     
         let planeGeo = new THREE.PlaneGeometry(thumbnailWidth, thumbnailHeight);
-        let material = new THREE.MeshBasicMaterial( { side:THREE.DoubleSide, map:thumbnailTexture, transparent:false, opacity:0.5 } );
+        let material = new THREE.MeshBasicMaterial( { side:THREE.DoubleSide, map:thumbnailTexture, transparent:true, opacity:1 } );
         let thumbMesh = new THREE.Mesh(planeGeo, material);
 
         let mapX = (screenOrder * thumbnailWidth) + (screenOrder * mapSpacing);
@@ -1081,7 +1088,7 @@ class AlgoMission {
 
         // Add map Id text
         let mapIdTextHeight = 0.75;
-        let mapIdText = "Map #" + mapIdx + ": " +  mapDef.name;
+        let mapIdText = "Map " + mapIdx + ": " +  mapDef.name;
         let mapIdMsgMesh = messageToMesh(document, mapIdText, mapIdTextHeight, 0xFFFFFF, undefined);
         limitViaScale( mapIdMsgMesh, mapIdMsgMesh.userData.width, thumbnailWidth );
         mapIdMsgMesh.position.set( thumbMesh.position.x, thumbMesh.position.y+(thumbnailHeight/2)+mapIdTextHeight, -(distanceFromCamera) );

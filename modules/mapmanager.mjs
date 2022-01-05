@@ -27,6 +27,8 @@ var ALGO = ALGO || {};
 // Instruction Manager can be a map tile observer 
 import { InstructionManager } from './instructionmanager.mjs';
 import { AlgoMission } from '../algomission.mjs'; 	// for observer notification types
+import { calculateMeshHeight } from './algoutils.js'; 	        // utility functions
+
 
 class MapManager 
 {
@@ -625,8 +627,10 @@ class MapManager
 		model.add( SkeletonUtils.clone( flairMesh ) );
 		
 		let flair = new TileFlairBird( flairName, model, this.flairAudio, this.flairGltf["Bird"], this.gameMgr );
-		this.positionBird( tileObject, model );
+		let birdHeight = calculateMeshHeight( model );
 		model.scale.set(0.5,0.5,0.5);
+		this.positionBird( tileObject, model, birdHeight );
+		
 		tileObject.addFlair( flair );
 	}
 
@@ -643,29 +647,29 @@ class MapManager
 
 		switch( tileObject.getTileType() ) {
 			case "tile_vert": 
+			case "tile_top_deadend":
+			case "tile_bottom_deadend":
 				x = x - 20;
 				rotY = 1.5;
 			break;
 
 			case "tile_horiz":
-				x = x +5; 
+			case "tile_tjunct_horiz_down":
+			case "tile_bend_left_down":
+				x = x + 5; 
 				z = z + 20;
 				rotY = 3.1;
 			break;
 
 			case "tile_cross":
-			case "tile_top_deadend":
-			case "tile_bottom_deadend":
 			case "tile_right_deadend":
 			case "tile_left_deadend":
-			case "tile_tjunct_horiz_down":
 			case "tile_tjunct_horiz_up":
 			case "tile_tjunct_vert_left":
 			case "tile_tjunct_vert_right":
 			case "tile_vert":
 			case "tile_horiz":
 			case "tile_bend_left_up":
-			case "tile_bend_left_down":
 			case "tile_bend_right_up":
 			case "tile_bend_right_down":
 				// TBD
@@ -690,30 +694,31 @@ class MapManager
 
 		switch( tileObject.getTileType() ) {
 			case "tile_vert": 
+			case "tile_top_deadend":
+			case "tile_bottom_deadend":
 				x = x - 20;
 				z = z - 10;
 				rotY = -1.5;
 			break;
 
 			case "tile_horiz": 
+			case "tile_tjunct_horiz_down":
+			case "tile_bend_left_down":
 				x = x - 10;
 				z = z + 20;
 				rotY=0;
 			break;
 
 			case "tile_cross":
-			case "tile_top_deadend":
 			case "tile_bottom_deadend":
 			case "tile_right_deadend":
 			case "tile_left_deadend":
-			case "tile_tjunct_horiz_down":
 			case "tile_tjunct_horiz_up":
 			case "tile_tjunct_vert_left":
 			case "tile_tjunct_vert_right":
 			case "tile_vert":
 			case "tile_horiz":
 			case "tile_bend_left_up":
-			case "tile_bend_left_down":
 			case "tile_bend_right_up":
 			case "tile_bend_right_down":
 				// TBD
@@ -724,13 +729,14 @@ class MapManager
 		mesh.position.set( x , y, z );
 	}
 
-	positionBird( tileObject, mesh )
+	positionBird( tileObject, mesh, birdHeight )
 	{
 		let tileMesh = tileObject.getTileMesh();
-		let x = tileMesh.position.x;
-		let y = tileMesh.position.y + 14;
-		let z = tileMesh.position.z + 20;
-		
+
+		let x = tileMesh.position.x; 	// middle
+		let y = tileMesh.position.y + birdHeight + (this.tileHeight/2);// ( this.tileHeight); 	// try to avoid render issues
+		let zOffset = (this.tileLength/2) * 0.50; 	// 50% into second half of tile
+		let z = tileMesh.position.z + zOffset;
 		let rotX = 0;
 		let rotY = 2;
 		let rotZ = 0;

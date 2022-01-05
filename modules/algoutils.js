@@ -85,4 +85,14 @@ function messageToMesh( doc, msg, msgHeight, fgColour, optionalBgColour ) {
     return mesh;
 }
 
-export { getScreenWidthAtCameraDistance, getScreenHeightAtCameraDistance, limitViaScale, determineScale, messageToMesh, getBestSelectMapScreenWidth };
+function calculateMeshHeight( mesh ) {
+  
+    var boundingBox = new THREE.Box3().setFromObject(mesh);
+    const boxSize = new THREE.Vector3();
+    boundingBox.getSize( boxSize );
+
+    return boxSize.y;
+  }
+
+
+export { calculateMeshHeight, getScreenWidthAtCameraDistance, getScreenHeightAtCameraDistance, limitViaScale, determineScale, messageToMesh, getBestSelectMapScreenWidth };
