@@ -60,6 +60,8 @@ class InstructionManager {
 		this.html = "<b>Instructions:<b><p>";
 		this.instructionPtr = InstructionManager.instructionConfig.NO_INSTRUCTION; 	// index into this.instructions
 
+		this.instructionDiv = null;
+
 		gameMgr.getMapManager().registerObserver(this);    	// for score change notifications	
 		gameMgr.registerObserver(this); 					// for state change notifications
 
@@ -94,10 +96,10 @@ class InstructionManager {
 	*
 	*/
 	addInstructionWindow() {
-		var instructionDiv = document.createElement('div');
+		this.instructionDiv = document.createElement('div');
 
-		instructionDiv.id = "instructionTextBox";
-		instructionDiv.style.cssText =
+		this.instructionDiv.id = "instructionTextBox";
+		this.instructionDiv.style.cssText =
 			"width: 200px;" +
 			"height: 200px;" +
 			"left: 20px;" +
@@ -114,9 +116,21 @@ class InstructionManager {
 			"position: absolute;" +
 			"font: 12px arial,serif;";
 
-		instructionDiv.style.opacity = 0.0;		// we'll set to 1 after loading
+			this.instructionDiv.style.opacity = 0.0;		// we'll set to 1 after loading
 
-		document.body.appendChild(instructionDiv);
+		document.body.appendChild(this.instructionDiv);
+	}
+
+	hide() {
+		if( this.instructionDiv && document.body.contains(this.instructionDiv) ) {
+			document.body.removeChild( this.instructionDiv );
+		}
+	}
+
+	show() {
+		if( this.instructionDiv ) {
+			document.body.appendChild(this.instructionDiv);
+		}
 	}
 
 	/**
@@ -125,7 +139,7 @@ class InstructionManager {
 	*
 	*/
 	setWindowOpacity(opacity) {
-		document.getElementById("instructionTextBox").style.opacity = opacity;
+		this.instructionDiv.style.opacity = opacity;
 	}
 
 	/**
@@ -134,7 +148,7 @@ class InstructionManager {
 	*
 	*/
 	updateWindow(scrollType) {
-		document.getElementById("instructionTextBox").innerHTML = this.generateInstructionHtml();
+		this.instructionDiv.innerHTML = this.generateInstructionHtml();
 		if (scrollType == 1) {
 			this.followScroll();
 		}
@@ -186,7 +200,7 @@ class InstructionManager {
 	*
 	*/
 	tailScroll() {
-		document.getElementById("instructionTextBox").scrollTop = document.getElementById("instructionTextBox").scrollHeight;
+		this.instructionDiv.scrollTop = this.instructionDiv.scrollHeight;
 	}
 
 	/**
@@ -195,9 +209,8 @@ class InstructionManager {
 	*
 	*/
 	followScroll() {
-		var followTop = (document.getElementById("instructionTextBox").scrollHeight / this.instructions.length) * this.instructionPtr;
-
-		document.getElementById("instructionTextBox").scrollTop = followTop;
+		var followTop = (this.instructionDiv.scrollHeight / this.instructions.length) * this.instructionPtr;
+		this.instructionDiv.scrollTop = followTop;
 	}
 
 	/**

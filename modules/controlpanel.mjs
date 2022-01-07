@@ -104,6 +104,14 @@ class ControlPanel {
 		}
 	}
 
+	hide() {
+        this.removeButtons( this.panelCamera  );
+    }
+
+    show() {
+        this.addButtons( this.panelCamera  );
+    }
+
 	addButtons( camera ) {
 		// TODO - animation
 		camera.add( this.controlPanelGroup );		

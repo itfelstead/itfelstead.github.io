@@ -12,16 +12,19 @@ import { InstructionManager } from "./instructionmanager.mjs";
 import { MapManager } from "./mapmanager.mjs";
 import { AlgoMission } from "../algomission.mjs";
 
+import { calculateMeshDimensions } from './algoutils.js'; 	        // utility functions
+
+
 /**
  * @namespace The algo-mission namespace
  */
 var ALGO = ALGO || {};
 
 class Bot {
-  OP_TIME_STEP = 2; 			// time in secs to execute an instruction
+  OP_TIME_STEP = 2; 			                // time in secs to execute an instruction
   OP_DEATH_TIME_STEP = 4;
-  OP_DELAY = 0.5; 			// delay between operations
-  ROTATE_STEP = 90 * Math.PI / 180; 	// Turn by 90 degrees (in radians)
+  OP_DELAY = 0.5; 			                  // delay between operations
+  ROTATE_STEP = THREE.Math.degToRad(90);  // Turn by 90 degrees (in radians)
 
   static TState = {
     INITIAL: 1,
@@ -46,6 +49,8 @@ class Bot {
     GOOD: 2
   };
 
+  static ROTATION_ORDER="XZY";
+
   /**
   * constructor
   * @class The bot class. Represents the main character in the game.
@@ -67,10 +72,14 @@ class Bot {
     this.audioBusFall = null;
     this.audioBusTurn = null;
     this.audioBusWait = null;
-
-    //this.raycaster = new THREE.Raycaster();
   
     this.mesh = null;
+
+    /*
+    // we hold the bot is a group to assist with rotation 
+    // (i.e. we rotate bot to starting orientation, then rotate the group from then on)
+    this.botGroup = null;
+*/
 
     this.modelLength = 0;
     this.stepSize = 0;  		// units to move by (over OP_TIME_STEP seconds). Will update based on bot length
@@ -114,11 +123,7 @@ class Bot {
   calculateStepSize() {
     var tileBorder = 4;
 
-    var boundingBox = new THREE.Box3().setFromObject(this.mesh);
-    const boxSize = new THREE.Vector3();
-    boundingBox.getSize( boxSize );
-
-    this.modelLength = boxSize.z;
+    this.modelLength = this.getBot().userData.depth;
     this.stepSize = this.modelLength + (tileBorder * 2);
   }
 
@@ -148,9 +153,21 @@ class Bot {
       // Scale is OK as loaded, but to change; object3d.scale.set(100, 100, 100);
 
       instance.mesh = object3d;
+/*
+      instance.botGroup = new THREE.Group();
+      instance.botGroup.add( instance.mesh );
+*/
+      const box = calculateMeshDimensions(instance.mesh);
+      instance.mesh.userData.width = box.x;
+      instance.mesh.userData.height = box.y;
+      instance.mesh.userData.depth = box.z;
 
       instance.calculateStepSize();
     });
+  }
+
+  getBot() {
+    return this.mesh;     // return this.botGroup;
   }
 
   loadAudio(audioListener) {
@@ -197,7 +214,7 @@ class Bot {
 
   waitForLoad(isCreatedCallback, context) {
     var waitForAll = setInterval(function () {
-      if (context.mesh != null &&
+      if (context.getBot() != null &&
         context.audioBusMove != null &&
         context.audioBusTurn != null &&
         context.audioBusHorn != null &&
@@ -425,7 +442,7 @@ class Bot {
     // AND which direction we're travelling in..
 
     var worldRotation = new THREE.Quaternion();
-    this.mesh.getWorldQuaternion( worldRotation );
+    this.getBot().getWorldQuaternion( worldRotation );
     let normYRot = worldRotation.y;
 
     let currentInstruction = this.gameMgr.getInstructionMgr().currentInstruction();
@@ -483,9 +500,9 @@ class Bot {
 
   resetBot() {
     this.scale = 1.0;
-    this.mesh.rotation.set(0, 0, 0, 'XZY');
-    this.mesh.position.set(0, 0, 0);
-    this.mesh.scale.set(this.scale, this.scale, this.scale);
+    this.getBot().rotation.set(0, 0, 0, Bot.ROTATION_ORDER );
+    this.getBot().position.set(0, 0, 0);
+    this.getBot().scale.set(this.scale, this.scale, this.scale);
     this.rotationOnRoad = 0;
     this.moveOnRoad = 0;
     this.rotationInFall = 0;
@@ -525,9 +542,9 @@ class Bot {
   *
   */
   activateTileUnderBot() {
-    var x = this.mesh.position.x;
-    var y = this.mesh.position.y + 1; // bot is at same y pos as tiles so raise
-    var z = this.mesh.position.z;
+    let x = this.getBot().position.x;
+    let y = this.getBot().position.y + 1; // bot is at same y pos as tiles so raise
+    let z = this.getBot().position.z;
 
     this.gameMgr.getMapManager().activateTileUnderPos(x, y, z );  
   }
@@ -576,13 +593,15 @@ class Bot {
     // drop down, shrink and rotate
     var movementThisFrame = movementTime * (fallSpeed / this.OP_TIME_STEP);
 
-    var rotationThisFrame = movementTime * (this.ROTATE_STEP / this.OP_TIME_STEP);
+    let rotationThisFrame = movementTime * (this.ROTATE_STEP / this.OP_TIME_STEP);
 
     // shrink 100% in this.deathTimer ms
     var shrinkageThisFrame = movementTime * (1.0 / this.OP_DEATH_TIME_STEP);
 
     this.moveInFall = -movementThisFrame;
     this.rotationInFall += rotationThisFrame;
+    this.rotationInFall = this.rotationInFall % (2*Math.PI);
+
     this.scale = this.scale - shrinkageThisFrame;
     if (this.scale < 0) {
       this.scale = 0;
@@ -628,10 +647,13 @@ class Bot {
   */
   // updateMesh according to rotation and move values
   updateMesh() {
-    if (this.mesh != null && typeof (this.mesh) != "undefined") {
+    if (this.getBot() != null && typeof (this.getBot()) != "undefined") {
       var x = 0.0;
+      this.rotationOnRoad = this.rotationOnRoad % (2*Math.PI);
       var y = this.rotationOnRoad;
       var z = 0.0;
+
+      this.getBot().rotation.y = y;
 
       if (this.state == Bot.TState.DYING) {
 
@@ -647,13 +669,14 @@ class Bot {
         else if (this.deathSpin == Bot.TDeathSpin.FORWARDS) {
           x = this.rotationInFall;
         }
-        this.mesh.scale.set(this.scale, this.scale, this.scale);
+        this.getBot().scale.set(this.scale, this.scale, this.scale);
       }
 
-      this.mesh.rotation.set(x, y, z, 'XZY');
+      this.getBot().rotation.x = x;
+      this.getBot().rotation.z = z;
 
       if (this.moveOnRoad != 0) {
-        this.mesh.translateZ(this.moveOnRoad);
+        this.getBot().translateZ(this.moveOnRoad);
 
         this.moveOnRoad = 0; 		// we moved, so reset
       }
@@ -661,7 +684,7 @@ class Bot {
       if (this.moveInFall != 0) {
         // Don't translateY as 'down' changes depending on orientation of object
         // instead we need to move along world Y via position
-        this.mesh.position.y = this.mesh.position.y + this.moveInFall;
+        this.getBot().position.y = this.getBot().position.y + this.moveInFall;
         this.moveInFall = 0; 		// we moved, so reset
       }
     }

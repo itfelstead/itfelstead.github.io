@@ -135,7 +135,7 @@ class LoadingManager {
     animateZoomAway( mesh, animDelayMs, zoomStep, finalZ ) {
         if( mesh.position.z < finalZ  ) {
             mesh.position.z = mesh.position.z + zoomStep;
-            mesh.position.y = mesh.position.y - (zoomStep*2);
+            mesh.position.y = mesh.position.y + (zoomStep*2);
             mesh.rotation.z = mesh.rotation.z + (zoomStep/10);
             setTimeout(this.animateZoomAway.bind(this, mesh, animDelayMs, zoomStep, finalZ ), animDelayMs);
         }

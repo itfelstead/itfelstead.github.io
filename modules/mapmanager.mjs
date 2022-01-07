@@ -649,6 +649,7 @@ class MapManager
 			case "tile_vert": 
 			case "tile_top_deadend":
 			case "tile_bottom_deadend":
+			case "tile_bend_right_up":
 				x = x - 20;
 				rotY = 1.5;
 			break;
@@ -656,22 +657,20 @@ class MapManager
 			case "tile_horiz":
 			case "tile_tjunct_horiz_down":
 			case "tile_bend_left_down":
+			case "tile_left_deadend":
+			case "tile_right_deadend":
+			case "tile_bend_right_down":
 				x = x + 5; 
 				z = z + 20;
 				rotY = 3.1;
 			break;
 
 			case "tile_cross":
-			case "tile_right_deadend":
-			case "tile_left_deadend":
 			case "tile_tjunct_horiz_up":
 			case "tile_tjunct_vert_left":
 			case "tile_tjunct_vert_right":
-			case "tile_vert":
-			case "tile_horiz":
 			case "tile_bend_left_up":
-			case "tile_bend_right_up":
-			case "tile_bend_right_down":
+			
 				// TBD
 			break;
 		}
@@ -696,6 +695,7 @@ class MapManager
 			case "tile_vert": 
 			case "tile_top_deadend":
 			case "tile_bottom_deadend":
+			case "tile_bend_right_up":
 				x = x - 20;
 				z = z - 10;
 				rotY = -1.5;
@@ -704,23 +704,19 @@ class MapManager
 			case "tile_horiz": 
 			case "tile_tjunct_horiz_down":
 			case "tile_bend_left_down":
+			case "tile_left_deadend":
+			case "tile_right_deadend":
+			case "tile_bend_right_down":
 				x = x - 10;
 				z = z + 20;
 				rotY=0;
 			break;
 
 			case "tile_cross":
-			case "tile_bottom_deadend":
-			case "tile_right_deadend":
-			case "tile_left_deadend":
 			case "tile_tjunct_horiz_up":
 			case "tile_tjunct_vert_left":
 			case "tile_tjunct_vert_right":
-			case "tile_vert":
-			case "tile_horiz":
 			case "tile_bend_left_up":
-			case "tile_bend_right_up":
-			case "tile_bend_right_down":
 				// TBD
 			break;
 		}

@@ -76,7 +76,7 @@
             "hint": "forward once, turn left, forward and wait (4 instructions)",
             "difficulty": 1,
             "successCriteria": 1,
-            "maximumScore": 2,
+            "maximumScore": 1,
             "tileLayout": [
                 { "x": 0, "z":-1, "id": "tile_bottom_deadend" },
                 { "x": 0, "z": 0, "id": "tile_vert", "role": "START" },
@@ -159,8 +159,8 @@
             "instructions": "Try to pick up everyone if you can!",
             "hint": "Did you manage to pick up everyone for maximum points?",
             "difficulty": 1,
-            "successCriteria": 1,
-            "maximumScore": 1,
+            "successCriteria": 2,
+            "maximumScore": 3,
             "tileLayout": [
                 { "x": 0, "z": 0, "id": "tile_bottom_deadend", "role": "START" },
                 { "x": 0, "z": 1, "id": "tile_vert", "role": "BUSSTOP" },
@@ -174,8 +174,8 @@
             "instructions": "",
             "hint": "!",
             "difficulty": 1,
-            "successCriteria": 1,
-            "maximumScore": 2,
+            "successCriteria": 3,
+            "maximumScore": 4,
             "tileLayout": [
                 { "x": 0, "z":-1, "id": "tile_bottom_deadend" },
                 { "x": 0, "z": 0, "id": "tile_vert", "role": "START" },
@@ -214,8 +214,8 @@
             "instructions": "err.... good luck!",
             "hint": "Who needs the grid anyway?!",
             "difficulty": 1,
-            "successCriteria": 1,
-            "maximumScore": 1,
+            "successCriteria": 2,
+            "maximumScore": 3,
             "tileLayout": [
                 { "x": 0, "z":-1, "id": "tile_bottom_deadend" },
                 { "x": 0, "z": 0, "id": "tile_vert", "role": "START" },

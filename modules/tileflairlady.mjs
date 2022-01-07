@@ -56,19 +56,20 @@ class TileFlairLady {
 
             this.m_BoardingTriggered = true;
             let bot = this.m_GameMgr.getBot();
-            let targetPos = bot.mesh.position;
+            let targetPos = bot.position;
             this.runBoardingAnim( targetPos );
     
             this.m_GameMgr.m_MapManager.registerFlairSuccess( 1000, true );
         }
-        else if( instruction == InstructionManager.instructionConfig.FIRE ) {
+        else if( instruction == InstructionManager.instructionConfig.FIRE &&
+            this.m_BoardingTriggered == false ) {
             
             if( "LadyFlairSound_Angry" in this.audio ) {
                 let self = this;
                 setTimeout( function() { 
                     self.audio["LadyFlairSound_Angry"].play();
                     self.m_GameMgr.m_MapManager.registerFlairFailure( -100, false );
-                    }, 500); //this.shockLady.bind(this), 500 );
+                    }, 500);
             }
         }
     }

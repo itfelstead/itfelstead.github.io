@@ -41,6 +41,12 @@ function limitViaScale( meshToLimit, meshWidth, maxWidth ) {
     }
 }
 
+function boundedScaleTo( desiredWidth, maxScale, meshWidth ) {
+    let scale = determineScale( desiredWidth, 100, meshWidth );
+    scale = Math.min( scale, maxScale );
+    return scale;
+}
+
 function determineScale( windowWidth, desiredPercentage, objectWidth ) {
     let widthAsPercentOfWindow = objectWidth / (windowWidth/100);
     let currentEffectiveScale = widthAsPercentOfWindow/100;
@@ -85,14 +91,17 @@ function messageToMesh( doc, msg, msgHeight, fgColour, optionalBgColour ) {
     return mesh;
 }
 
-function calculateMeshHeight( mesh ) {
-  
+function calculateMeshDimensions( mesh ) {
     var boundingBox = new THREE.Box3().setFromObject(mesh);
     const boxSize = new THREE.Vector3();
     boundingBox.getSize( boxSize );
 
+    return boxSize;
+}
+function calculateMeshHeight( mesh ) {
+  
+    const boxSize = calculateMeshDimensions(mesh);
     return boxSize.y;
-  }
+}
 
-
-export { calculateMeshHeight, getScreenWidthAtCameraDistance, getScreenHeightAtCameraDistance, limitViaScale, determineScale, messageToMesh, getBestSelectMapScreenWidth };
+export { boundedScaleTo, calculateMeshDimensions, calculateMeshHeight, getScreenWidthAtCameraDistance, getScreenHeightAtCameraDistance, limitViaScale, determineScale, messageToMesh, getBestSelectMapScreenWidth };
