@@ -228,9 +228,9 @@ class TileFlairBird {
     }
 
     runHappyBirdAnim() {
-        let animDelayMs = 10;
+        let animDelayMs = 30;
         let finalY = 600;
-        let flyStep = 0.5;
+        let flyStep = 1.5;
         let instance = this;
         (function animateBirdFly() {
             instance.m_FlownAway = true;
@@ -252,7 +252,7 @@ class TileFlairBird {
         let targetQuaternion = camera.quaternion;
 
         let maxFlightTimeMs = 2000;     // Hit target in # milliseconds of flight
-        let animDelayMs = 10;
+        let animDelayMs = 30;
         let numFlySteps = maxFlightTimeMs/animDelayMs;
         let tStep = 1 / numFlySteps;
         let t = 0;  // complete when t = 1

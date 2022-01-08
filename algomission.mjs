@@ -219,10 +219,17 @@ class AlgoMission {
                 // NOOP
                 break;
             case AlgoMission.TAppState.SETUP:
-                // During this state we're just waiting for loading, or the user to click past the title screen
+                // During this state we're just waiting for loading
+                if( this.getLoadingManager().loadComplete( this.m_StartupLoadJobNames ) == true ) {
+                    this.getLoadingManager().startLoadingScreenShutdown();
+                }
+                this.getLoadingManager().update();
                 break;
+
             case AlgoMission.TAppState.LOADED:
+                this.getTitleScreen().update();
                 break;
+
             case AlgoMission.TAppState.READY:
                 // allow user freedom to look around
                 this.m_MouseControls.enabled = true;
@@ -259,7 +266,10 @@ class AlgoMission {
                 break;
         }
 
-        if (this.m_State != AlgoMission.TAppState.INITIAL && this.m_State != AlgoMission.TAppState.DEAD) {
+        if (this.m_State != AlgoMission.TAppState.INITIAL && 
+            this.m_State != AlgoMission.TAppState.SETUP &&
+            this.m_State != AlgoMission.TAppState.LOADED &&
+            this.m_State != AlgoMission.TAppState.DEAD) {
 
             this.getControlPanel().update(AlgoMission.UPDATE_TIME_STEP);
 
@@ -279,7 +289,7 @@ class AlgoMission {
                 break;
 
             case AlgoMission.TAppState.SETUP:
-                if( this.getLoadingManager().loadComplete( this.m_StartupLoadJobNames ) == true ) {
+                if( this.getLoadingManager().isFinished() ) {
                     newState = AlgoMission.TAppState.LOADED;
                 }
                 break;
@@ -412,7 +422,7 @@ class AlgoMission {
                 // NOOP
                 break;
             case AlgoMission.TAppState.SETUP:
-                this.getLoadingManager().removeLoadingScreen();
+                // loading screen is already gone by this point
                 this.setMeshVisibility( "sky", true);
                 break;
             case AlgoMission.TAppState.LOADED:
@@ -490,9 +500,9 @@ class AlgoMission {
 
     createTitleScreen() {
 
-        this.m_TitleScreen = new TitleScreen();
+        this.m_TitleScreen = new TitleScreen( this.m_Camera );
 
-        this.m_TitleScreen.create( this.m_Camera, this.getBot() );
+        this.m_TitleScreen.create( this.getBot() );
 
    }
 
@@ -566,6 +576,8 @@ class AlgoMission {
     }
 
     addSky() {
+        const name = "sky";
+
         var skyGeo = new THREE.SphereGeometry(500, 60, 40);
         skyGeo.scale(- 1, 1, 1);
 
@@ -576,7 +588,7 @@ class AlgoMission {
             function (texture) {
                 var material = new THREE.MeshBasicMaterial({ map: texture });
                 var mesh = new THREE.Mesh(skyGeo, material);
-                mesh.name = "sky";
+                mesh.name = name;
                 mesh.visible = false;       // don't show it straight away
                 self.m_Scene.add(mesh);
 
@@ -584,11 +596,12 @@ class AlgoMission {
             },
             // on download progress
             function (xhr) {
-                //console.log( AlgoMission.SKY_TEXTURE + " " + (xhr.loaded / xhr.total * 100) + '% loaded' );
+                self.getLoadingManager().updateJobProgress(name, xhr.loaded / xhr.total  );
             },
             // on error
             function (xhr) {
-                //console.log( 'Error loading sky texture ' + AlgoMission.SKY_TEXTURE );
+                self.getLoadingManager().markJobFailed(name);
+                console.log( 'Error loading texture: ' + AlgoMission.SKY_TEXTURE );
             }
         );
     }
@@ -693,9 +706,10 @@ class AlgoMission {
     }
 
     loadWinnerModels( glTFLoader ) {
+        const jobName = "trophy";
         if( this.getLoadingManager().jobExists() == false ) {
-            this.getLoadingManager().addJobMonitor("trophy");
-            this.loadModel( "./models/Trophy_SyntyStudios/scene.gltf", glTFLoader, this.trophyCreatedCb.bind(this) );
+            this.getLoadingManager().addJobMonitor(jobName);
+            this.loadModel( "./models/Trophy_SyntyStudios/scene.gltf", glTFLoader, this.trophyCreatedCb.bind(this), jobName );
         }
     }
 
@@ -715,7 +729,7 @@ class AlgoMission {
         }, 100);
     }
 
-    loadModel(model, glTFLoader, isCreatedCallback) {
+    loadModel(model, glTFLoader, isCreatedCallback, optionalJobName ) {
         var instance = this; 	// so we can access bot inside anon-function
         glTFLoader.load( model, 
             // Loaded    
@@ -724,10 +738,16 @@ class AlgoMission {
             },
             // Progress
             function (xhr ) {
+                if( optionalJobName ) {
+                    instance.getLoadingManager().updateJobProgress(optionalJobName, xhr.loaded / xhr.total  );
+                }
                 console.log( model + " " + ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
             },
             // Error
             function( error ) {
+                if( optionalJobName ) {
+                    instance.getLoadingManager().markJobFailed(optionalJobName);
+                }
                 console.log( 'Failed to load model ' + model );
             }
         );
@@ -767,10 +787,10 @@ class AlgoMission {
         limitViaScale( newMissionMesh, newMissionMesh.userData.width, screenWidth );
         newMissionMesh.position.set( 0, messageMesh.position.y - (messageMesh.userData.height/2) - newMissionMesh.userData.height, -distanceFromCamera );
         
-        let animDelayMs = 10;
+        let animDelayMs = 30;
 
         let finalZ = -5;
-        let zoomStep = 0.1;
+        let zoomStep = 0.3;
         (function animateTrophyZoom() {
             if( instance.m_Trophy.position.z > finalZ  ) {
                 instance.m_Trophy.position.z = instance.m_Trophy.position.z - zoomStep;
@@ -797,7 +817,7 @@ class AlgoMission {
             }
         })();
 
-        let rotateStep = 0.01;
+        let rotateStep = 0.03;
         (function animateTrophySpin() {
             instance.m_Trophy.rotation.y = instance.m_Trophy.rotation.y - rotateStep;
             // Spin while on win
@@ -820,8 +840,8 @@ class AlgoMission {
         }
 
         let finalZ = 1;
-        let zoomStep = 0.2;
-        let animDelayMs = 10;
+        let zoomStep = 0.6;
+        let animDelayMs = 30;
         var instance = this;
         (function animateTrophy() {
             if( instance.m_Trophy.position.z < finalZ  ) {
@@ -1047,8 +1067,8 @@ class AlgoMission {
             this.m_ArrowsSpinning = true;
 
             let instance = this;
-            let animDelayMs = 10;
-            let rotateStep = 0.01;
+            let animDelayMs = 30;
+            let rotateStep = 0.03;
             (function animateArrowSpin() {
                 // Spin while on select screen and has parent (i.e. camera)
                 if (instance.m_State == AlgoMission.TAppState.SELECTMAP ) 

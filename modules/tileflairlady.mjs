@@ -80,7 +80,7 @@ class TileFlairLady {
 
     runBoardingAnim( targetPos ) {
         let maxAnimTimeMs = 500;     // Hit target in 0.5 seconds
-        let animDelayMs = 10;
+        let animDelayMs = 30;
         let numSteps = maxAnimTimeMs/animDelayMs;
         let tStep = 1 / numSteps;
         let t = 0;  // complete when t = 1
